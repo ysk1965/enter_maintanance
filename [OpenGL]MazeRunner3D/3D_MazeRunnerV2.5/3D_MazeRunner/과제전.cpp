@@ -1,0 +1,2660 @@
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <glut.h>
+#include <math.h>
+#include <windows.h>
+#include <string>
+#include <random>
+#include <mmsystem.h>
+#include <time.h>
+#include <fstream>
+
+#pragma comment(lib,"winmm") 
+#pragma warning(disable:4996)
+using namespace std;
+
+///////////////////////////
+GLubyte * LoadDIBitmap(const char *filename, BITMAPINFO **info);
+GLubyte *pBytes; // 데이터를 가리킬 포인터
+BITMAPINFO *info; // 비트맵 헤더 저장할 변수
+GLuint textures[1];
+void initTextures();
+///////////////////////////
+
+#define SOUND_FILE_NAME			"../sound/item.wav"
+#define SOUND_FILE_NAME_ON		"../sound/on.wav"
+#define SOUND_FILE_NAME_BGM_1	"../sound/bgm_1.wav"
+#define SOUND_FILE_NAME_FINISH	"../sound/finish.wav"
+#define SOUND_FILE_NAME_DARK	"../sound/dark.wav"
+#define SOUND_FILE_NAME_FAIL	"../sound/IB.wav"
+#define SOUND_FILE_NAME_CRASH	"../sound/crash.wav"
+#define SOUND_FILE_NAME_MORNING "../sound/morning.wav"
+
+#define MAP_1 "../MAP_Veryeasy.txt"
+#define MAP_2 "../MAP_Easy.txt"
+#define MAP_3 "../MAP_Normal.txt"
+#define MAP_4 "../MAP_Hard.txt"
+#define MAP_5 "../MAP_Veryhard.txt"
+#define INIT "../MAP_Veryeasy.txt"
+
+#define SIZE 22 // 맵 사이즈
+
+int mapcollect = 0;
+
+GLvoid DrawScene(GLvoid);
+void Reshape(int w1, int h1);
+void SpecialKeyboard(int key, int x, int y); //키보드 조종
+void Keyboard(unsigned char Key, int x, int y); // 키보드 조종2
+void MouseMove(int x, int y);
+GLvoid Mouse(int button, int state, int x, int y);
+void TimerFunction(int value);
+void setProjection(int w1, int h1);
+
+///////////////////////////////////////////////////////////
+//                     Sub Menu
+///////////////////////////////////////////////////////////
+
+//한바퀴 회전
+GLfloat x_Rotate = 0.0;
+GLfloat y_Rotate = 0.0;
+GLfloat z_Rotate = 0.0;
+int XR_P = 0;
+int YR_P = 0;
+int ZR_P = 0;
+
+float speedup = 0;
+int speed_cnt = 0;
+int hp_max = 0;
+bool pass = false;
+int mini_pass = 0;
+int cheat = 0;
+int mini_item = 8;
+
+clock_t start, finish;
+
+//bool 값
+bool greedon = true;
+bool lightening = true;
+bool bool_item = false;
+bool bool_line = false;
+bool shadingon = true;
+bool depthon = true;
+bool cullingon = true;
+bool play_bool = false;
+
+bool hint = false;
+
+///////////////////////////////////////////////////////////
+//                     Lookat
+///////////////////////////////////////////////////////////
+
+float look_x = 0;
+float look_y = 0;
+float look_z = -3;
+float center_x = 0;
+float center_y = 0;
+float center_z = -100;
+float up_x = 0;
+float up_y = 1;
+float up_z = 0;
+
+///////////////////////////////////////////////////////////
+//                   Light & Fog
+///////////////////////////////////////////////////////////
+
+float ambientL = 0.2;
+float diffuseL = 0.7;
+float specularL = 0.9;
+int timef = 60;
+
+bool MainLight_bool = true;
+float Light_rot = 0;
+
+GLfloat fog_color[4] = { static_cast<float>(0.18), static_cast<float>(0.18), static_cast<float>(0.18), static_cast<float>(0.3) };
+GLfloat density = 0.3;
+GLfloat start_fog = -4.0;
+GLfloat end_fog = 4.0;
+
+int cutoff = 10;
+int warning_sign = 0;
+int passblock = 0;
+
+///////////////////////////////////////////////////////////
+//                    Board & Ghost                      //
+///////////////////////////////////////////////////////////
+
+int makeboard[SIZE][SIZE] = { 0 };
+int map = 0;
+
+float Big_x = 0;
+float Big_z = 0;
+float small_z = 0;
+float small_x = 0;
+
+int cnt = 0;
+int change = 0;
+
+bool choice1 = false;
+bool choice2 = false;
+
+int input = 0;
+
+///////////////////////////////////////////////////////////
+//                 Camera & Window                       //
+///////////////////////////////////////////////////////////
+
+// 각
+float angle = 0.0f;
+
+//벡터
+float lx = 0.0f, lz = -1.0f, ly = 0.0f;
+
+//카메라
+float x = 0.0f, z = 5.0f, y = 1.75f;
+
+// 이동 변수
+float deltaAngle = 0.0f;
+float deltaMove = 0;
+int xOrigin = -1;
+
+// 높낮이
+int h, w;
+
+//프레임
+int frame;
+long timing, timebase;
+char s[50];
+char t[50];
+
+int mainscore = 0;
+
+//윈도우
+int mainWindow, subWindow1, subWindow2, subWindow3;
+int border = 6;
+float distribution = 0.5;
+
+/////////////////////////////////////////////
+
+float colorbuffer[4][3] = { 0 };
+
+typedef struct ranking
+{
+	char* name;
+	int map;
+	int score;
+}ranking;
+
+ranking rankbuffer[100];
+
+struct point
+{
+	float min_x = -15 - 0.5;
+	float min_z = -15 + 0.5;
+	float max_x = -15 + 0.5;
+	float max_z = -15 - 0.5;
+	bool warning = false;
+};
+
+point static_block[SIZE][SIZE];
+point static_person;
+point static_ghost[8];
+point static_ghost_1[10];
+
+void startinit()
+{
+	cheat = 0;
+	speedup = 0;
+	speed_cnt = 0;
+	passblock = 0;
+	mini_item = 8;
+	cutoff = 10;
+	density = 0.3;
+	mainscore = 0;
+	hint = false;
+}
+
+///////////////////////////////////////////////
+
+GLubyte * LoadDIBitmap(const char *filename, BITMAPINFO **info)
+{
+	FILE *fp;
+	GLubyte *bits;
+	int bitsize, infosize;
+	BITMAPFILEHEADER header;
+	// 바이너리 읽기 모드로 파일을 연다
+	if ((fp = fopen(filename, "rb")) == NULL)
+		return NULL;
+	// 비트맵 파일 헤더를 읽는다.
+	if (fread(&header, sizeof(BITMAPFILEHEADER), 1, fp)<1) {
+		fclose(fp);
+		return NULL;
+	}
+	// 파일이 BMP 파일인지 확인한다.
+	if (header.bfType != 'MB') {
+		fclose(fp);
+		return NULL;
+	}
+	// BITMAPINFOHEADER 위치로 간다.
+	infosize = header.bfOffBits - sizeof(BITMAPFILEHEADER);
+	// 비트맵 이미지 데이터를 넣을 메모리 할당을 한다.
+	if ((*info = (BITMAPINFO *)malloc(infosize)) == NULL) {
+		fclose(fp);
+		exit(0);
+		return NULL;
+	}
+	// 비트맵 인포 헤더를 읽는다.
+	if (fread(*info, 1, infosize, fp)<(unsigned int)infosize) {
+		free(*info);
+		fclose(fp);
+		return NULL;
+	}
+	// 비트맵의 크기 설정
+	if ((bitsize = (*info)->bmiHeader.biSizeImage) == 0)
+		bitsize = ((*info)->bmiHeader.biWidth *
+			(*info)->bmiHeader.biBitCount + 7) / 8.0 *
+		abs((*info)->bmiHeader.biHeight);
+	// 비트맵의 크기만큼 메모리를 할당한다.
+	if ((bits = (unsigned char *)malloc(bitsize)) == NULL) {
+		free(*info);
+		fclose(fp);
+		return NULL;
+	}
+	// 비트맵 데이터를 bit(GLubyte 타입)에 저장한다.
+	if (fread(bits, 1, bitsize, fp)<(unsigned int)bitsize) {
+		free(*info); free(bits);
+		fclose(fp);
+		return NULL;
+	}
+	fclose(fp);
+	return bits;
+}
+
+void Fog()
+{
+	glEnable(GL_FOG);
+
+	glFogf(GL_FOG_MODE, GL_EXP);
+
+	glFogfv(GL_FOG_COLOR, fog_color); // fog_color는 안개의 색을 의미한다. 
+
+	glFogf(GL_FOG_START, start_fog); // start는 world coordinate상에서 안개 시작 위치를 의미한다.  
+
+	glFogf(GL_FOG_END, end_fog); // end는 world coordinate상에서 안개 끝 위치를 의미한다. 
+
+	glFogf(GL_FOG_DENSITY, density); // fog mode가 GL_EXP, GL_EXP2일 경우 밀도의 설정이 가능 
+}
+
+void draw_hp()
+{
+	for (int i = 0; i < hp_max; i++)
+	{
+		glPushMatrix();
+		{
+			glColor3f(1, 1, 1);
+			glTranslatef(-45 + i * 22, -57, 0);
+			glBindTexture(GL_TEXTURE_2D, textures[0]);
+			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+			glBegin(GL_POLYGON);
+			{
+				glTexCoord2f(1, 1);
+				glVertex2f(-8, 8);
+				glTexCoord2f(0, 1);
+				glVertex2f(-8, -8);
+				glTexCoord2f(0, 0);
+				glVertex2f(8, -8);
+				glTexCoord2f(1, 0);
+				glVertex2f(8, 8);
+			}
+			glEnd();
+		}
+		glPopMatrix();
+	}
+}
+
+int Loadfile()
+{
+	FILE *fp;
+	switch (mapcollect)
+	{
+	case 0:
+		fp = fopen(MAP_1, "rt");
+		break;
+	case 1:
+		fp = fopen(MAP_2, "rt");
+		break;
+	case 2:
+		fp = fopen(MAP_3, "rt");
+		break;
+	case 3:
+		fp = fopen(MAP_4, "rt");
+		break;
+	case 4:
+		fp = fopen(MAP_5, "rt");
+		break;
+	case 5:
+		fp = fopen(INIT, "rt");
+		break;
+	}
+
+
+	if (fp == NULL)
+	{
+		printf("\n실패\n");
+		return 1;
+	}
+
+	printf("\n완료\n");
+
+	int cha;
+
+	while (feof(fp) == 0)
+	{
+		for (int i = 0; i < SIZE; i++)
+		{
+			for (int j = 0; j < SIZE; j++)
+			{
+				fscanf(fp, "%d", &cha);
+				makeboard[i][j] = cha;
+			}
+		}
+	}
+	fclose(fp);
+
+	return 1;
+}
+
+void renderBitmapString(float x, float y, float z, void *font, char *string)
+{
+	char *c;
+	glRasterPos3f(x, y, z);
+	for (c = string; *c != '\0'; c++) {
+		glutBitmapCharacter(font, *c);
+	}
+}
+
+void letter_Play()
+{
+	glColor3f(1, 1, 1);
+	char *string = "ITEM	:";    glRasterPos2f(-80, -80);  // 문자 출력할 위치 설정  
+	int len = (int)strlen(string);
+	for (int i = 0; i < len; i++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_1 = "HP	:";    glRasterPos2f(-80, -60);  // 문자 출력할 위치 설정  
+	int len_1 = (int)strlen(string);
+	for (int i = 0; i < len; i++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_1[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_2 = "SCORE	:";    glRasterPos2f(-80, -40);  // 문자 출력할 위치 설정  
+	int len_2 = (int)strlen(string);
+	for (int i = 0; i < len; i++)
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_2[i]);
+}
+
+void letter_Menu()
+{
+	glColor3f(1, 1, 1);
+	char *string_10 = "START";    glRasterPos2f(-68, -70);  // 문자 출력할 위치 설정  
+	int len_10 = (int)strlen(string_10);
+	for (int i = 0; i < len_10; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_10[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_11 = "SCORE";    glRasterPos2f(-15, -70);  // 문자 출력할 위치 설정  
+	int len_11 = (int)strlen(string_11);
+	for (int i = 0; i < len_11; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_11[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_12 = "QUIT";    glRasterPos2f(43, -70);  // 문자 출력할 위치 설정  
+	int len_12 = (int)strlen(string_12);
+	for (int i = 0; i < len_12; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_12[i]);
+}
+
+void letter_item()
+{
+	if (mini_item == 0)
+	{
+		glColor3f(1, 1, 1);
+		char *string_20 = "SPEED UP";    glRasterPos2f(x, y+3);  // 문자 출력할 위치 설정  
+		int len_20 = (int)strlen(string_20);
+		for (int i = 0; i < len_20; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_20[i]);
+	}
+
+	if (mini_item == 1)
+	{
+		char *string_21 = "HP! UP";    glRasterPos2f(x, y + 3);  // 문자 출력할 위치 설정  
+		int len_21 = (int)strlen(string_21);
+		for (int i = 0; i < len_21; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_21[i]);
+	}
+
+	if (mini_item == 2)
+	{
+		char *string_22 = "BREAK BLOCK![2]";    glRasterPos2f(x, y + 3);  // 문자 출력할 위치 설정  
+		int len_22 = (int)strlen(string_22);
+		for (int i = 0; i < len_22; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_22[i]);
+	}
+
+	if (mini_item == 3)
+	{
+		char *string_23 = "WIDE VIEW";    glRasterPos2f(x, y + 3);  // 문자 출력할 위치 설정  
+		int len_23 = (int)strlen(string_23);
+		for (int i = 0; i < len_23; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_23[i]);
+	}
+
+	if (mini_item == 4)
+	{
+		char *string_24 = "LIGHT UP";    glRasterPos2f(x, y + 3);  // 문자 출력할 위치 설정  
+		int len_24 = (int)strlen(string_24);
+		for (int i = 0; i < len_24; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_24[i]);
+	}
+
+	if (mini_item == 5)
+	{
+		char *string_25 = "LIGHT UP";    glRasterPos2f(x, y + 3);  // 문자 출력할 위치 설정  
+		int len_25 = (int)strlen(string_25);
+		for (int i = 0; i < len_25; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, string_25[i]);
+	}
+}
+
+void letter_time()
+{
+	char p[20];
+	char s[20];
+
+	sprintf(p, "Break : [ %d ]", passblock);
+	sprintf(s, "Speed : [ %d ]", speed_cnt);
+	sprintf(t, "%d", mainscore);
+
+	char *c;
+	glRasterPos3f(-50, -40, 0);
+	for (c = t; *c != '\0'; c++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
+	} // 점수표시
+
+	char *cp;
+	glRasterPos3f(0, -40, 0);
+	for (cp = p; *cp != '\0'; cp++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *cp);
+	} // 블록 깨기
+
+	char *cs;
+	glRasterPos3f(0, -80, 0);
+	for (cs = s; *cs != '\0'; cs++) {
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *cs);
+	} // 속도
+}
+
+void letter_Level()
+{
+	glColor3f(1, 1, 1);
+	char *string_50 = "V Easy";    glRasterPos2f(-68, -44);  // 문자 출력할 위치 설정  
+	int len_50 = (int)strlen(string_50);
+	for (int i = 0; i < len_50; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_50[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_51 = "Easy";    glRasterPos2f(-68, -18);  // 문자 출력할 위치 설정  
+	int len_51 = (int)strlen(string_51);
+	for (int i = 0; i < len_51; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_51[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_52 = "Normal";    glRasterPos2f(-68, 8);  // 문자 출력할 위치 설정  
+	int len_52 = (int)strlen(string_52);
+	for (int i = 0; i < len_52; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_52[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_53 = "Hard";    glRasterPos2f(-68, 34);  // 문자 출력할 위치 설정  
+	int len_53 = (int)strlen(string_53);
+	for (int i = 0; i < len_53; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_53[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_54 = "V Hard";    glRasterPos2f(-68, 60);  // 문자 출력할 위치 설정  
+	int len_54 = (int)strlen(string_54);
+	for (int i = 0; i < len_54; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_54[i]);
+}
+
+void letter_score()
+{
+	glColor3f(1, 1, 1);
+	char *string_50 = "V Easy";    glRasterPos2f(-15, -44);  // 문자 출력할 위치 설정  
+	int len_50 = (int)strlen(string_50);
+	for (int i = 0; i < len_50; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_50[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_51 = "Easy";    glRasterPos2f(-15, -18);  // 문자 출력할 위치 설정  
+	int len_51 = (int)strlen(string_51);
+	for (int i = 0; i < len_51; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_51[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_52 = "Normal";    glRasterPos2f(-15, 8);  // 문자 출력할 위치 설정  
+	int len_52 = (int)strlen(string_52);
+	for (int i = 0; i < len_52; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_52[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_53 = "Hard";    glRasterPos2f(-15, 34);  // 문자 출력할 위치 설정  
+	int len_53 = (int)strlen(string_53);
+	for (int i = 0; i < len_53; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_53[i]);
+
+	glColor3f(1, 1, 1);
+	char *string_54 = "V Hard";    glRasterPos2f(-15, 60);  // 문자 출력할 위치 설정  
+	int len_54 = (int)strlen(string_54);
+	for (int i = 0; i < len_54; i++)
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, string_54[i]);
+}
+
+///////////////////////////////////////////////////////////////////////
+
+void computeDir(float deltaAngle) {
+	angle += deltaAngle;
+	lx = sin(angle);
+	lz = -cos(angle);
+}
+
+void collision(point a, int i, int j)
+{
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		if (passblock > 0)
+		{
+			PlaySound(TEXT(SOUND_FILE_NAME), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+			passblock--;
+			makeboard[i][j] = 4;
+		}
+		else
+		{
+			PlaySound(TEXT(SOUND_FILE_NAME_CRASH), NULL, SND_ASYNC | SND_ALIAS);
+			if (hp_max == 1)
+			{
+				startinit();
+				PlaySound(TEXT(SOUND_FILE_NAME_FAIL), NULL, SND_ASYNC | SND_ALIAS);
+			}
+			//cout << "crash" << endl;
+
+			x = 0;
+			z = 3;
+			hp_max -= 1;
+		}
+	}
+}
+
+void collision_sideline(point a, int i, int j)
+{
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		PlaySound(TEXT(SOUND_FILE_NAME_CRASH), NULL, SND_ASYNC | SND_ALIAS);
+		if (hp_max == 1)
+		{
+			startinit();
+			PlaySound(TEXT(SOUND_FILE_NAME_FAIL), NULL, SND_ASYNC | SND_ALIAS);
+		}
+		cout << "crash" << endl;
+
+		x = 0;
+		z = 3;
+		hp_max -= 1;
+	}
+}
+
+void collision_item(point a)
+{
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		mainscore += 50;
+		bool_item = true;
+		//cout << "get item" << endl;
+		PlaySound(TEXT(SOUND_FILE_NAME), NULL, SND_ASYNC | SND_ALIAS);
+
+		srand((unsigned)time(NULL));
+
+		mini_item = rand() % 5;
+		switch (mini_item)
+		{
+		case 0:
+			speedup += 0.1; // 속도증가
+			speed_cnt++;
+			cout << "속도증가" << endl;
+			break;
+		case 1:
+			hp_max++; // 체력 증가
+			cout << "체력증가" << endl;
+			break;
+		case 2:
+			passblock += 1;
+			//pass = true;
+			cout << "블럭깨기" << endl;
+			break;
+		case 3:
+			cheat += 1;
+			cout << "시야 증가" << endl;
+			break;
+		case 4:
+			cutoff += 10;
+			cout << "밝기증가" << endl;
+			break;
+		}
+	}
+}
+
+void collision_line(point a)
+{
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		mainscore += 20;
+		bool_line = true;
+	}
+}
+
+void collision_endline(point a)
+{
+	char str[100];
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		PlaySound(TEXT(SOUND_FILE_NAME_FINISH), NULL, SND_ASYNC | SND_ALIAS);
+
+		cout << "Goal" << endl;
+
+		x = 0;
+		z = 3;
+
+		printf("이름을 입력하시오: \n");
+		gets_s(str, 100);
+
+		ifstream in("comgra.cpp");
+		if (input == 1)
+		{
+			ofstream out("VeryEasy.txt", ios::app);
+			out << "플레이어:" << str << " 맵넘버:" << map << " 점수:" << mainscore<< endl;
+			out << "===========================" << endl;
+			play_bool = false;
+			hp_max = 0;
+		}
+		else if (input == 2)
+		{
+			ofstream out("Easy.txt", ios::app);
+			out << "플레이어:" << str << " 맵넘버:" << map << " 점수:" << mainscore<< endl;
+			out << "===========================" << endl;
+			play_bool = false;
+			hp_max = 0;
+		}
+		else if (input == 3)
+		{
+			ofstream out("Normal.txt", ios::app);
+			out << "플레이어:" << str << " 맵넘버:" << map << " 점수:" << mainscore << endl;
+			out << "===========================" << endl;
+			play_bool = false;
+			hp_max = 0;
+		}
+		else if (input == 4)
+		{
+			ofstream out("Hard.txt", ios::app);
+			out << "플레이어:" << str << " 맵넘버:" << map << " 점수:" << mainscore  << endl;
+			out << "===========================" << endl;
+			play_bool = false;
+			hp_max = 0;
+		}
+		else if (input == 5)
+		{
+			ofstream out("VeryHard.txt", ios::app);
+			out << "플레이어:" << str << " 맵넘버:" << map << " 점수:" << mainscore << endl;
+			out << "===========================" << endl;
+			play_bool = false;
+			hp_max = 0;
+		}
+	}
+	startinit();
+}
+
+void collision_ghost(point a)
+{
+	if (a.max_x > x && a.min_x < x && a.max_z<z - 3 && a.min_z > z - 3)
+	{
+		PlaySound(TEXT(SOUND_FILE_NAME_CRASH), NULL, SND_ASYNC | SND_ALIAS);
+		if (hp_max == 1)
+		{
+			startinit();
+			MainLight_bool = true;
+			PlaySound(TEXT(SOUND_FILE_NAME_FAIL), NULL, SND_ASYNC | SND_ALIAS);
+		}
+		cout << "crash ghost" <<endl;
+
+		printf("%3f \n", x);
+		printf("%3f \n\n", z);
+
+
+		printf("%3f \n", a.max_x);
+		printf("%3f \n", a.min_x);
+		printf("%3f \n", a.max_z);
+		printf("%3f \n", a.min_z);
+		x = 0;
+		z = 3;
+		hp_max -= 1;
+		//light_1 = true;
+	}
+}
+
+bool warning(point a)
+{
+	//glBegin(GL_LINE_LOOP);
+	//{
+	//	glVertex3f(a.max_x, 1, a.max_z);
+	//	glVertex3f(a.min_x, 1, a.max_z);
+	//	glVertex3f(a.min_x, 1, a.min_z);
+	//	glVertex3f(a.max_x, 1, a.min_z);
+	//}
+	//glEnd();
+
+	if (a.max_x < x - 2.5 || a.min_x > x + 2.5)
+		return false;
+	if (a.min_z < z - 5.5 || a.max_z > z - 0.5)
+		return false;
+
+	return true;
+}
+
+bool collision_ramain(point a)
+{
+	if (a.max_x < x - 3 || a.min_x > x + 3)
+		return false;
+	if (a.min_z < z - 3 || a.max_z > z + 3)
+		return false;
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+void effectonoff()
+{
+	if (shadingon == true)
+	{
+		glShadeModel(GL_SMOOTH);
+	}
+	else
+	{
+		glShadeModel(GL_FLAT);
+	}
+	if (depthon == true)
+	{
+		glEnable(GL_DEPTH_TEST);
+	}
+	else
+	{
+		glDisable(GL_DEPTH_TEST);
+	}
+	if (cullingon == true)
+	{
+		glFrontFace(GL_CCW);
+		glEnable(GL_CULL_FACE);
+	}
+	else
+	{
+		glFrontFace(GL_CCW);
+		glDisable(GL_CULL_FACE);
+	}
+}
+
+void init_board()
+{
+	x_Rotate = 0.0;
+	y_Rotate = 0.0;
+	z_Rotate = 0.0;
+	XR_P = 0;
+	YR_P = 0;
+	ZR_P = 0;
+	bool greedon = true;
+	// 축 이동
+
+	look_x = 0;
+	look_y = 0;
+	look_z = 0;
+} // 초기화 함수
+
+void LargeView()
+{
+	look_x = 0.00001;
+	look_y = 13;
+	look_z = 9;
+	center_x = 0;
+	center_y = -130;
+	center_z = -200;
+	up_x = 0;
+	up_y = 1;
+	up_z = 0;
+}
+
+void TopView()
+{
+	look_x = 0.00001;
+	look_y = 8;
+	look_z = 0.00001;
+	center_x = 0;
+	center_y = 1;
+	center_z = 0;
+	up_x = 0;
+	up_y = -1;
+	up_z = 0;
+}
+
+void CameraView()
+{
+	look_x = 0;
+	look_y = 0;
+	look_z = -3;
+	center_x = 0;
+	center_y = 0;
+	center_z = -100;
+	up_x = 0;
+	up_y = 1;
+	up_z = 0;
+}
+
+int cageX = -55;
+int cageY = -65;
+
+void cage()
+{
+	glPushMatrix();
+	{
+		glTranslatef(cageX, cageY, 0);
+		glLineWidth(5);
+		glBegin(GL_LINE_LOOP);
+		{
+			glVertex3f(-25, 15, 0);
+			glVertex3f(-25, -15, 0);
+			glVertex3f(25, -15, 0);
+			glVertex3f(25, 15, 0);
+		}
+		glEnd();
+		glLineWidth(1);
+	}
+	glPopMatrix();
+}
+
+void MainLight()
+{
+	GLfloat AmbientLight[] = { ambientL, ambientL, ambientL, ambientL };//주변 조명
+	GLfloat DiffuseLight[] = { diffuseL, diffuseL, diffuseL, diffuseL };//산란 반사 조명
+	GLfloat SpecularLight[] = { specularL, specularL, specularL, specularL };//거울반사 조명
+	GLfloat lightPos[] = { -28, 0, 0, 1 };
+	GLfloat specref[] = { 1,1,1,1 };
+	glEnable(GL_LIGHTING);
+	glEnable(GL_NORMALIZE);
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specref);
+	glMateriali(GL_FRONT, GL_SHININESS, 128);
+
+	if (MainLight_bool == true)
+	{
+		glPushMatrix();
+		{
+			glColor3f(4, 4, 0);
+			glTranslated(-75, 0, 0);
+			glTranslated(0, -1, 0);
+			glTranslated(0, 0, 0);
+			glutSolidSphere(10, 50, 50);
+		}
+		glPopMatrix();
+
+		glEnable(GL_LIGHT0);
+		glEnable(GL_COLOR_MATERIAL);
+	}
+	else
+	{
+		glDisable(GL_LIGHT0);
+	}
+}
+
+void Lantern()
+{
+	GLfloat Direction[] = { 0, 0, 1 };//주변 조명
+	GLfloat lightPos[] = { 0, 1, 0, 1 };
+	GLfloat specref[] = { 1,1,1,1 };
+
+	GLfloat AmbientLight[] = { ambientL, ambientL, ambientL, ambientL };//주변 조명
+	GLfloat DiffuseLight[] = { diffuseL, diffuseL, diffuseL, diffuseL };//산란 반사 조명
+	GLfloat SpecularLight[] = { specularL, specularL, specularL, specularL };//거울반사 조명
+
+	glEnable(GL_LIGHTING);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, Direction);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 0.01);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, cutoff - warning_sign);
+	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.9);
+	glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1);
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, AmbientLight);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, DiffuseLight);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, SpecularLight);
+	glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+
+	glEnable(GL_COLOR_MATERIAL); // 오오... 개체의 기본색을 입히는거같아..!
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specref);
+	glMateriali(GL_FRONT, GL_SHININESS, 128);
+
+	if (MainLight_bool == false)
+	{
+		glEnable(GL_LIGHT1);
+	}
+	else
+	{
+		glDisable(GL_LIGHT1);
+	}
+}
+
+float obj_rot = 0;
+
+void item()
+{
+	glPushMatrix();
+	{
+		glEnable(GL_BLEND);
+		glPushMatrix();
+		{
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			//glColor3f(0.7, 0.2, 0.2);
+			glTranslatef(0, 2, 0);
+			glColor4f(0, 0.8, 0, 0.8);
+			glRotatef(obj_rot, 0, 1, 0);
+			glutSolidCube(0.3);
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			glColor4f(0.7, 0, 0, 0.5);
+			glTranslatef(0, 2, 0);
+			glRotatef(obj_rot, 0, 1, 0);
+			glRotatef(90, -1, 0, -1);
+			glutSolidCube(0.6);
+		}
+		glPopMatrix();
+
+		glDisable(GL_BLEND);
+	}
+	glPopMatrix();
+}
+
+void remain()
+{
+	glPushMatrix();
+	{
+		glEnable(GL_BLEND);
+		glPushMatrix();
+		{
+			//glScaled(1.5,1,1.5);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+			//glColor3f(0.7, 0.2, 0.2);
+			glTranslatef(0, 0.6, 0);
+			glColor4f(0, 0.5, 0.5, 0.8);
+			glRotatef(obj_rot, 0, 1, 0);
+			glutSolidSphere(0.1, 15, 15);
+			//glutSolidCube(0.1);
+		}
+		glPopMatrix();
+
+		glPushMatrix();
+		{
+			//glScaled(1.5, 1, 1.5);
+			glColor4f(0.0, 0.0, 0.8, 0.5);
+			glTranslatef(0, 0.6, 0);
+			glRotatef(obj_rot + 5, 0, 1, 0);
+			glRotatef(90, -1, 0, -1);
+			//glutSolidSphere(0.15, 15, 15);
+			glutSolidCube(0.25);
+		}
+		glPopMatrix();
+
+		glDisable(GL_BLEND);
+	}
+	glPopMatrix();
+}
+
+void Person()
+{
+	glPushMatrix();
+	{
+		glTranslatef(0, 0.5, 0);
+		glColor3f(1, 8, 1);
+		glScalef(0.4, 0.75, 0.4);
+
+		glBegin(GL_QUADS);
+		{
+			//윗면
+			glColor3f(0.0f, 0.0f, 1.0f);// Blue
+			glVertex3f(1, 1, 1);
+			glColor3f(0.0f, 1.0f, 0.0f);// Green
+			glVertex3f(1, 1, -1);
+			glColor3f(1.0f, 0.0f, 0.0f);// Red
+			glVertex3f(-1, 1, -1);
+			glColor3f(1.0f, 1.0f, 0.0f);// Yellow
+			glVertex3f(-1.0, 1.0, 1.0f);
+
+			//뒷면
+			glColor3f(0.0f, 1.0f, 0.0f);// Green
+			glVertex3f(1, 1, -1);
+			glColor3f(0.0f, 0.0f, 0.0f);// Black
+			glVertex3f(1, -1, -1);
+			glColor3f(1.0f, 1.0f, 1.0f);// White
+			glVertex3f(-1, -1, -1);
+			glColor3f(1.0f, 0.0f, 0.0f);// Red
+			glVertex3f(-1, 1, -1);
+
+			//아랫면
+			glColor3f(1.0f, 0.0, 1.0f);// Magenta
+			glVertex3f(-1, -1, 1);
+			glColor3f(1.0f, 1.0f, 1.0f);// White
+			glVertex3f(-1, -1, -1);
+			glColor3f(0.0f, 0.0f, 0.0f);// Black
+			glVertex3f(1, -1, -1);
+			glColor3f(0.0f, 1.0f, 1.0f);// Cyan
+			glVertex3f(1, -1, 1);
+
+			//왼면
+			glColor3f(1.0f, 0.0f, 0.0f);// Red
+			glVertex3f(-1, 1, -1);
+			glColor3f(1.0f, 1.0f, 1.0f);// White
+			glVertex3f(-1, -1, -1);
+			glColor3f(1.0f, 0.0, 1.0f);// Magenta
+			glVertex3f(-1, -1, 1);
+			glColor3f(1.0f, 1.0f, 0.0f);// Yellow
+			glVertex3f(-1.0, 1.0, 1.0f);
+
+			//오른면
+
+			glColor3f(0.0f, 0.0f, 1.0f);// Blue
+			glVertex3f(1, 1, 1);
+			glColor3f(0.0f, 1.0f, 1.0f);// Cyan
+			glVertex3f(1, -1, 1);
+			glColor3f(0.0f, 0.0f, 0.0f);// Black
+			glVertex3f(1, -1, -1);
+			glColor3f(0.0f, 1.0f, 0.0f);// Green
+			glVertex3f(1, 1, -1);
+		}
+		glEnd();
+
+		glLineWidth(2);
+		glColor3f(0.5, 0.5, 0.5);
+		//glBegin(GL_LINE_LOOP);
+		//{
+		//	glVertex3f(static_person.max_x + 15, 2, static_person.max_z + 15);
+		//	glVertex3f(static_person.min_x + 15, 2, static_person.max_z + 15);
+		//	glVertex3f(static_person.min_x + 15, 2, static_person.min_z + 15);
+		//	glVertex3f(static_person.max_x + 15, 2, static_person.min_z + 15);
+		//}
+		//glEnd();
+		glLineWidth(1);
+
+	}
+	glPopMatrix();
+}
+
+void BigGhost()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		glEnable(GL_BLEND);
+		glPushMatrix();
+		{
+			glTranslatef((10 * i) - 16, 0, -16 + Big_x);
+			glRotatef(0, 0, 1, 0);
+			glBlendFunc(GL_ONE, GL_ONE);
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+			glTranslatef(0.0f, 0.85f, 0.0f);
+			glutSolidSphere(0.9f, 20, 20);
+
+			glTranslatef(0.0f, 1.15f, 0.0f);
+			glutSolidSphere(0.50f, 20, 20);
+
+			glPushMatrix();
+			glColor3f(0.0f, 0.0f, 0.0f);
+			glTranslatef(0.07f, 0.14f, 0.45f);
+			glutSolidSphere(0.13f, 10, 10);
+			glTranslatef(-0.2f, 0.0f, 0.0f);
+			glutSolidSphere(0.13f, 10, 10);
+			glPopMatrix();
+
+			glColor3f(1.0f, 0.5f, 0.5f);
+			glutSolidCone(0.2f, 1.0f, 10, 2);
+		}
+		glPopMatrix();
+		glDisable(GL_BLEND);
+
+		static_ghost[i].min_x = -0.85 + (10 * i) - 16;
+		static_ghost[i].min_z = 0.85 + Big_x - 16;
+		static_ghost[i].max_x = 0.85 + (10 * i) - 16;
+		static_ghost[i].max_z = -0.85 + Big_x - 16;
+
+
+		//glBegin(GL_LINE_LOOP);
+		//{
+		//	glVertex3f(static_ghost[i].max_x, 1, static_ghost[i].max_z);
+		//	glVertex3f(static_ghost[i].min_x, 1, static_ghost[i].max_z);
+		//	glVertex3f(static_ghost[i].min_x, 1, static_ghost[i].min_z);
+		//	glVertex3f(static_ghost[i].max_x, 1, static_ghost[i].min_z);
+		//}
+		//glEnd();
+		glLineWidth(1); // 블럭 위치-
+	}
+	///////////////////////////////////////////////////////// 가로
+	for (int i = 5; i < 8; i++)
+	{
+		glEnable(GL_BLEND);
+		glPushMatrix();
+		{
+			glTranslatef(Big_x - 17, 0, (13 * i) - 78);
+			glRotatef(90, 0, 1, 0);
+			glBlendFunc(GL_ONE, GL_ONE);
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+			glTranslatef(0.0f, 0.85f, 0.0f);
+			glutSolidSphere(0.9f, 20, 20);
+
+			glTranslatef(0.0f, 1.15f, 0.0f);
+			glutSolidSphere(0.50f, 20, 20);
+
+			glPushMatrix();
+			glColor3f(0.0f, 0.0f, 0.0f);
+			glTranslatef(0.07f, 0.14f, 0.45f);
+			glutSolidSphere(0.13f, 10, 10);
+			glTranslatef(-0.2f, 0.0f, 0.0f);
+			glutSolidSphere(0.13f, 10, 10);
+			glPopMatrix();
+
+			glColor3f(1.0f, 0.5f, 0.5f);
+			glutSolidCone(0.2f, 1.0f, 10, 2);
+		}
+		glPopMatrix();
+		glDisable(GL_BLEND);
+
+		static_ghost[i].min_x = 0.85 + Big_x - 17;
+		static_ghost[i].min_z = -0.85 + (13 * i) - 78;
+		static_ghost[i].max_x = -0.85 + Big_x - 17;
+		static_ghost[i].max_z = 0.85 + (13 * i) - 78;
+
+
+		//glBegin(GL_LINE_LOOP);
+		//{
+		//	glVertex3f(static_ghost[i].max_x, 1, static_ghost[i].max_z);
+		//	glVertex3f(static_ghost[i].min_x, 1, static_ghost[i].max_z);
+		//	glVertex3f(static_ghost[i].min_x, 1, static_ghost[i].min_z);
+		//	glVertex3f(static_ghost[i].max_x, 1, static_ghost[i].min_z);
+		//}
+		//glEnd();
+		glLineWidth(1); // 블럭 위치-
+	}
+}
+
+void SmallGhost()
+{
+	for (int i = 0; i < 5; i++)
+	{
+		glEnable(GL_BLEND);
+		glPushMatrix();
+		{
+			glTranslatef((7 * i) - 16, 0, -small_z + 16);
+			glBlendFunc(GL_ONE, GL_ONE);
+			glRotatef(180, 0, 1, 0);
+			glColor3f(1.0f, 1.0f, 1.0f);
+
+			glTranslatef(0.0f, 0.75f, 0.0f);
+			glutSolidSphere(0.40f, 20, 20);
+
+			glTranslatef(0.0f, 0.55f, 0.0f);
+			glutSolidSphere(0.20f, 20, 20);
+
+			glPushMatrix();
+			glColor3f(0.0f, 0.0f, 0.0f);
+			glTranslatef(0.05f, 0.10f, 0.18f);
+			glutSolidSphere(0.05f, 10, 10);
+			glTranslatef(-0.1f, 0.0f, 0.0f);
+			glutSolidSphere(0.05f, 10, 10);
+			glPopMatrix();
+
+			glColor3f(1.0f, 0.5f, 0.5f);
+			glutSolidCone(0.08f, 0.45f, 10, 2);
+		}
+		glPopMatrix();
+		glDisable(GL_BLEND);
+
+		static_ghost_1[i].min_x = -0.5 + (7 * i) - 16;
+		static_ghost_1[i].min_z = 0.5 + -small_z + 16;
+		static_ghost_1[i].max_x = 0.5 + (7 * i) - 16;
+		static_ghost_1[i].max_z = -0.5 + -small_z + 16;
+
+		//glBegin(GL_LINE_LOOP);
+		//{
+		//	glVertex3f(static_ghost_1[i].max_x, 1, static_ghost_1[i].max_z);
+		//	glVertex3f(static_ghost_1[i].min_x, 1, static_ghost_1[i].max_z);
+		//	glVertex3f(static_ghost_1[i].min_x, 1, static_ghost_1[i].min_z);
+		//	glVertex3f(static_ghost_1[i].max_x, 1, static_ghost_1[i].min_z);
+		//}
+		//glEnd();
+		glLineWidth(1); // 블럭 위치
+	}
+	////////////////////////////////////////////////////////////////////////
+	//for (int i = 6; i < 10; i++)
+	//{
+	//	glEnable(GL_BLEND);
+	//	glPushMatrix();
+	//	{
+	//		glTranslatef(-small_z + 18, 0, (9 * i) - 65);
+	//		glBlendFunc(GL_ONE, GL_ONE);
+	//		glRotatef(-90, 0, 1, 0);
+	//		glColor3f(1.0f, 1.0f, 1.0f);
+
+	//		glTranslatef(0.0f, 0.75f, 0.0f);
+	//		glutSolidSphere(0.40f, 20, 20);
+
+	//		glTranslatef(0.0f, 0.55f, 0.0f);
+	//		glutSolidSphere(0.20f, 20, 20);
+
+	//		glPushMatrix();
+	//		glColor3f(0.0f, 0.0f, 0.0f);
+	//		glTranslatef(0.05f, 0.10f, 0.18f);
+	//		glutSolidSphere(0.05f, 10, 10);
+	//		glTranslatef(-0.1f, 0.0f, 0.0f);
+	//		glutSolidSphere(0.05f, 10, 10);
+	//		glPopMatrix();
+
+	//		glColor3f(1.0f, 0.5f, 0.5f);
+	//		glutSolidCone(0.08f, 0.45f, 10, 2);
+	//	}
+	//	glPopMatrix();
+	//	glDisable(GL_BLEND);
+
+	//	static_ghost_1[i].min_x = -0.5 + -small_z + 18;
+	//	static_ghost_1[i].min_z = 0.5 + (9 * i) - 65;
+	//	static_ghost_1[i].max_x = 0.5 + -small_z + 18;
+	//	static_ghost_1[i].max_z = -0.5 + (9 * i) - 65;
+
+	//	//glBegin(GL_LINE_LOOP);
+	//	//{
+	//	//	glVertex3f(static_ghost_1[i].max_x, 1, static_ghost_1[i].max_z);
+	//	//	glVertex3f(static_ghost_1[i].min_x, 1, static_ghost_1[i].max_z);
+	//	//	glVertex3f(static_ghost_1[i].min_x, 1, static_ghost_1[i].min_z);
+	//	//	glVertex3f(static_ghost_1[i].max_x, 1, static_ghost_1[i].min_z);
+	//	//}
+	//	//glEnd();
+	//	glLineWidth(1); // 블럭 위치
+	//}
+}
+
+
+void drawGreed(void)
+{
+	glColor3f(0.4, 0.4, 0.4);
+	glLineWidth(0.5);
+	glBegin(GL_LINES);
+	for (int i = 0; i < 100; i++) {
+		glVertex3f(-50, 0, i - 50);
+		glVertex3f(50, 0, i - 50);
+	}
+	for (int i = 0; i < 100; i++) {
+		glVertex3f(i - 50, 0, -50);
+		glVertex3f(i - 50, 0, 50);
+	}
+	glEnd();
+}
+
+void color_change()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			random_device seed_gen;
+			mt19937 engine(seed_gen());
+			uniform_real_distribution<> dist(distribution - 0.1, distribution);
+
+			colorbuffer[i][j] = dist(engine);
+		}
+	}
+}
+
+void draw_block()
+{
+	glPushMatrix();
+	{
+		glColor3f(colorbuffer[0][0], colorbuffer[0][1], colorbuffer[0][2]);
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glColor3f(colorbuffer[1][0], colorbuffer[1][1], colorbuffer[1][2]);
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glColor3f(colorbuffer[2][0], colorbuffer[2][1], colorbuffer[2][2]);
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glColor3f(colorbuffer[3][0], colorbuffer[3][1], colorbuffer[3][2]);
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+	}
+	glPopMatrix();
+}
+
+void Line_block()
+{
+	glColor3f(0.7, 0.7, 0.7);
+
+	glPushMatrix();
+	{
+		glNormal3f(0, 1, 0);
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+
+		glTranslatef(0, 1.1, 0);
+		glutSolidCube(1);
+	}
+	glPopMatrix();
+}
+
+
+void board_maker()
+{
+	for (int i = 0; i < SIZE; i++)
+	{
+		for (int j = 0; j < SIZE; j++)
+		{
+			if (makeboard[i][j] == 1)
+			{
+				glPushMatrix();
+				{
+					glTranslatef(i * 1.1 - 15, 0, j * 1.1 - 15);
+					draw_block();
+				}
+				glPopMatrix(); // 블럭 표시
+
+				glColor3f(1, 0, 0);
+				glLineWidth(1);
+				//glBegin(GL_LINE_LOOP);
+				//{
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].min_z);
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].min_z);
+				//}
+				//glEnd();
+				glLineWidth(1); // 블럭 위치
+			}
+			else if (makeboard[i][j] == 2)
+			{
+				glPushMatrix();
+				{
+					glTranslatef(i * 1.1 - 15, 0, j * 1.1 - 15);
+					item();
+				}
+				glPopMatrix(); // 아이템 표시
+
+				glColor3f(0, 1, 0);
+				glLineWidth(1);
+				//glBegin(GL_LINE_LOOP);
+				//{
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].min_z);
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].min_z);
+				//}
+				//glEnd();
+				glLineWidth(1); // 아이템 위치
+			}
+			else if (makeboard[i][j] == 3)
+			{
+				glPushMatrix();
+				{
+					glTranslatef(i * 1.1 - 15, 1.5, j * 1.1 - 15);
+					glColor3f(0.0, 0.0, 0.0);
+
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(-1.0f, 2.0f, 1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(-1.0f, -2.0f, 1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(1.0f, -2.0f, 1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(1.0f, 2.0f, 1.0f);
+					}
+					glEnd();
+					//오른쪽
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(1.0f, 2.0f, 1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(1.0f, -2.0f, 1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(1.0f, -2.0f, -1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(1.0f, 2.0f, -1.0f);
+					}
+					glEnd();
+					//뒷쪽
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(1.0f, 2.0f, -1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(1.0f, -2.0f, -1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(-1.0f, -2.0f, -1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(-1.0f, 2.0f, -1.0f);
+					}
+					glEnd();
+					////왼쪽
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(-1.0f, 2.0f, -1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(-1.0f, -2.0f, -1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(-1.0f, -2.0f, 1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(-1.0f, 2.0f, 1.0f);
+					}
+					glEnd();
+					////아랫쪽
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(-1.0f, -2.0f, 1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(-1.0f, -2.0f, -1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(1.0f, -2.0f, -1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(1.0f, -2.0f, 1.0f);
+					}
+					glEnd();
+					////윗쪽
+					glBindTexture(GL_TEXTURE_2D, textures[1]);
+					glBegin(GL_QUADS);
+					{
+						glTexCoord2f(1, 1);
+						glVertex3f(-1.0f, 2.0f, 1.0f);
+						glTexCoord2f(0, 1);
+						glVertex3f(-1.0f, 2.0f, -1.0f);
+						glTexCoord2f(0, 0);
+						glVertex3f(1.0f, 2.0f, -1.0f);
+						glTexCoord2f(1, 0);
+						glVertex3f(1.0f, 2.0f, 1.0f);
+					}
+					glEnd();
+				}
+				glPopMatrix(); // 도착지 표시
+
+				glColor3f(0, 0, 1);
+				glLineWidth(1);
+				//glBegin(GL_LINE_LOOP);
+				//{
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].min_z);
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].min_z);
+				//}
+				//glEnd();
+				glLineWidth(1); // 도착지 위치
+			}
+			else if (makeboard[i][j] == 4)
+			{
+				glPushMatrix();
+				{
+					glTranslatef(i * 1.1 - 15, 0, j * 1.1 - 15);
+					remain();
+				}
+				glPopMatrix();
+
+				glColor3f(0, 1, 0);
+				//glLineWidth(1);
+				//glBegin(GL_LINE_LOOP);
+				//{
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].min_z);
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].min_z);
+				//}
+				//glEnd();
+				//glLineWidth(1); // 아이템 위치
+			}
+			if (makeboard[i][j] == 5)
+			{
+				glPushMatrix();
+				{
+					glTranslatef(i * 1.1 - 15, 0, j * 1.1 - 15);
+					Line_block();
+				}
+				glPopMatrix(); // 블럭 표시
+
+				glColor3f(1, 0, 0);
+				glLineWidth(1);
+				//glBegin(GL_LINE_LOOP);
+				//{
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].max_z);
+				//	glVertex3f(static_block[i][j].min_x, 1, static_block[i][j].min_z);
+				//	glVertex3f(static_block[i][j].max_x, 1, static_block[i][j].min_z);
+				//}
+				//glEnd();
+				glLineWidth(1); // 블럭 위치
+			}
+		}
+	}
+}
+
+void Plane()
+{
+	glPushMatrix();
+	{
+		glColor3d(0.7, 0.7, 0.7);
+		glScaled(50, 1, 50);
+		glutSolidCube(1);
+	}
+	glPopMatrix();
+}
+
+void setProjection(int w, int h)
+{
+	float ratio;
+
+	ratio = 1.0f*w / h;
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glViewport(0, 0, w, h); // 윈도우 뷰포트
+
+	gluPerspective(45, ratio, 0.1, 1000); // 1. 클리핑 공간 설정 원근투영
+										  //glTranslatef(0.0, 1.5, -3.0); // 시야 확보
+
+										  //glOrtho(0.0, w, 0.0, h, -1, 1); // 2. 클리핑 공간 설정 : 직각 투영
+
+	glMatrixMode(GL_MODELVIEW);
+} // Reshape == 화면 호출 때만 부르는거기에 한 번 만해도 족한 것들
+
+void Reshape(int w1, int h1)
+{
+	PlaySound(TEXT(SOUND_FILE_NAME_BGM_1), NULL, SND_ASYNC | SND_SYNC);
+
+	if (h1 == 0)
+		h1 = 1;
+
+	w = w1;
+	h = h1;
+
+	glutSetWindow(subWindow1);
+	glutPositionWindow(border, border);
+	glutReshapeWindow(w - 2 * border, h / 2 - border * 3 / 2);
+	setProjection(w - 2 * border, h / 2 - border * 3 / 2);
+
+	glutSetWindow(subWindow2);
+	glutPositionWindow(border, (h + border) / 2);
+	glutReshapeWindow(w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+	setProjection(w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+
+	glutSetWindow(subWindow3);
+	glutPositionWindow((w + border) / 2, (h + border) / 2);
+	glutReshapeWindow(w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+	setProjection(w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+
+	color_change();
+}
+
+void restorePerspectiveProjection()
+{
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void setOrthographicProjection()
+{
+
+	glMatrixMode(GL_PROJECTION);
+
+	glPushMatrix();
+
+	glLoadIdentity();
+
+	gluOrtho2D(0, w, h, 0);
+
+	glMatrixMode(GL_MODELVIEW);
+}
+
+// 좌표계산
+void computePos(float deltaMove)
+{
+
+	x += deltaMove * lx * 0.1f;
+	z += deltaMove * lz * 0.1f;
+}
+
+// 메인메뉴 표시
+
+void renderScene()
+{
+	glutSetWindow(mainWindow);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glutSwapBuffers();
+}
+
+// 모든 화면에 그려지는 랜더링씬
+void renderScene2()
+{
+	//glLineWidth(3);
+	//glBegin(GL_LINE_LOOP);
+	//{
+	//	glVertex3f(x - 2, 3, z + 2);
+	//	glVertex3f(x + 2, 3, z + 2);
+	//	glVertex3f(x + 2, 3, z - 2);
+	//	glVertex3f(x - 2, 3, z - 2);
+	//}
+	//glEnd();
+
+	if (deltaAngle)
+	{
+		computeDir(deltaAngle);
+	}
+
+	//effectonoff();
+
+	gluLookAt(look_x, look_y, look_z, center_x, center_y, center_z, up_x, up_y, up_z);
+
+	//drawxyz(); // 축그려주기
+
+	glPushMatrix();
+	{
+		glRotatef(Light_rot, 0, 0, -1);
+		MainLight();
+	}
+	glPopMatrix();
+
+	Plane();
+}
+
+// 서브윈도우1
+void renderScenesw1() {
+
+	glutSetWindow(subWindow1);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glLoadIdentity();
+	if (hp_max != 0)
+	{
+		gluLookAt(x, y, z,
+			x + lx, y + ly, z + lz,
+			0.0f, 1.0f, 0.0f);
+	}
+	else
+	{
+		gluLookAt(x, y, z+100,
+			x + lx, y + ly, z + lz,
+			0.0f, 1.0f, 0.0f);
+	}
+
+	renderScene2();
+	board_maker();
+
+	glPushMatrix();
+	{
+		glColor3f(1.0, 0.0, 0.0);
+		glTranslatef(x, y - 1.5, z - 3);
+		glRotatef(180 - (angle + deltaAngle)*180.0 / 3.14, 0.0, 1.0, 0.0);
+		Person();
+
+		Lantern();
+		if (MainLight_bool == false)
+		{
+			Fog();
+		}
+		else
+		{
+			glDisable(GL_FOG);
+		}
+
+		if (greedon == true)
+		{
+			glPushMatrix();
+			{
+				glTranslated(0, 0.3, 0);
+				drawGreed();
+			}
+			glPopMatrix();
+		}
+	}
+	glPopMatrix();
+
+	if (MainLight_bool == false)
+	{
+		BigGhost();
+		SmallGhost();
+		for (int i = 0; i < 8; i++)
+		{
+			collision_ghost(static_ghost[i]);
+			if (warning(static_ghost[i]) == true)
+			{
+				static_ghost[i].warning = true;
+			}
+			else
+			{
+				static_ghost[i].warning = false;
+			}
+		}
+		for (int i = 0; i < 10; i++)
+		{
+			collision_ghost(static_ghost_1[i]);
+			if (warning(static_ghost_1[i]) == true)
+			{
+				static_ghost_1[i].warning = true;
+			}
+			else
+			{
+				static_ghost_1[i].warning = false;
+			}
+		}
+	}
+
+	for (int i = 0; i < SIZE; i++)
+	{
+		for (int j = 0; j < SIZE; j++)
+		{
+			if (makeboard[i][j] == 0) // 그냥 길...
+			{
+				collision_line(static_block[i][j]);
+				if (bool_line == true)
+				{
+					makeboard[i][j] = 4;
+					bool_line = false;
+				}
+			}
+			if (pass == false)
+			{
+				if (makeboard[i][j] == 1) // 벽 부딪치면 게임 out6
+				{
+					collision(static_block[i][j], i, j);
+				}
+			}
+			if (makeboard[i][j] == 2) // 아이템 먹기
+			{
+				collision_item(static_block[i][j]);
+				if (bool_item == true)
+				{
+					makeboard[i][j] = 0;
+					bool_item = false;
+				}
+			}
+			if (makeboard[i][j] == 3) // 게임 끝
+			{
+				collision_endline(static_block[i][j]);
+				if (bool_item == true)
+				{
+					makeboard[i][j] = 0;
+					bool_item = false;
+				}
+			}
+			if (makeboard[i][j] == 5) // 그냥 길...
+			{
+				collision_sideline(static_block[i][j], i, j);
+			}
+		}
+	} // 벽 부딪치는거 체크
+	if (hp_max == 0)
+	{
+		MainLight_bool = true;
+		play_bool = false;
+	}
+
+	// 프레임 표시
+	frame++;
+
+	glColor3f(0.0, 1.0, 0.0);
+	timing = glutGet(GLUT_ELAPSED_TIME);
+	if (timing - timebase > 1000) {
+		sprintf(s, "3D_MazeRunner - FPS:%4.2f",
+			frame*1000.0 / (timing - timebase));
+		timebase = timing;
+		frame = 0;
+	}
+	glColor3f(1.0, 1.0, 1.0);
+
+	setOrthographicProjection();
+
+	glPushMatrix();
+	glLoadIdentity();
+	renderBitmapString(5, 30, 0, GLUT_BITMAP_HELVETICA_12, s);
+	glPopMatrix();
+
+	restorePerspectiveProjection();
+
+	glutSwapBuffers();
+}
+
+// 서브윈도우 2
+void renderScenesw2() {
+
+	glutSetWindow(subWindow2);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glLoadIdentity();
+	if (hint == false)
+	{
+		if (MainLight_bool == true)
+		{
+			gluLookAt(x, y + 3 + cheat, z,
+				x, y - 1, z,
+				lx, 0, lz);
+		}
+		else
+		{
+			gluLookAt(x, y + 3 + cheat, z,
+				x, y - 1, z,
+				lx, 0, lz);
+		}
+	}
+	else
+	{
+		mainscore -= 5;
+		gluLookAt(x, y + 30 + cheat, z,
+			x, y - 1, z,
+			lx, 0, lz);
+	}
+
+	// 레드 콘 카메라
+	glPushMatrix();
+	{
+		glColor3f(1.0, 0.0, 0.0);
+		glTranslatef(x, y, z);
+		glRotatef(180 - (angle + deltaAngle)*180.0 / 3.14, 0.0, 1.0, 0.0);
+		glutSolidCone(0.2, 0.8f, 4, 4);
+	}
+	glPopMatrix();
+
+	renderScene2();
+	board_maker();
+
+	glPushMatrix();
+	{
+		glColor3f(1.0, 0.0, 0.0);
+		glTranslatef(x, y - 1.5, z - 3);
+		glRotatef(180 - (angle + deltaAngle)*180.0 / 3.14, 0.0, 1.0, 0.0);
+		Person();
+		Lantern();
+
+		if (greedon == true)
+		{
+			glPushMatrix();
+			{
+				glTranslated(0, 0.3, 0);
+				drawGreed();
+			}
+			glPopMatrix();
+		}
+	}
+	glPopMatrix();
+
+	if (MainLight_bool == false)
+	{
+		BigGhost();
+		SmallGhost();
+	}
+
+	glutSwapBuffers();
+}
+
+// 서브윈도우 3
+void renderScenesw3()
+{
+	glutSetWindow(subWindow3);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glLoadIdentity();
+	gluLookAt(
+		0, 0, 200,
+		0, 1, 0,
+		0, 1, 0);
+
+	renderScene2();
+
+	if (play_bool == true)
+	{
+		letter_Play();
+		letter_item();
+		letter_time();
+	}
+	else
+	{
+		cage();
+		letter_Menu();
+		if (choice1 == true)
+		{
+			letter_Level();
+		}
+		if (choice2 == true)
+		{
+			letter_score();
+		}
+	}
+
+	initTextures();
+	draw_hp();
+
+	glEnable(GL_TEXTURE_2D);
+
+	glutSwapBuffers();
+}
+
+// 전체 랜더링
+void DrawScene()
+{
+	// 키보드 이동 체크
+	if (deltaMove)
+	{
+		computePos(deltaMove);
+		glutSetWindow(mainWindow);
+		glutPostRedisplay();
+	}
+
+	renderScenesw1();
+	renderScenesw2();
+	renderScenesw3();
+}
+
+// -----------------------------------
+//             KEYBOARD
+// -----------------------------------
+
+void Keyboard(unsigned char key, int xx, int yy)
+{
+	//if (key == 'w' || key == 'W')  // X축에대해 회전
+	//{
+	//	XR_P = 1;
+	//}
+	//if (key == 'e' || key == 'E')  // Y축에대해 회전
+	//{
+	//	YR_P = 1;
+	//}
+	//if (key == 'r' || key == 'R')  // Z축에대해 회전
+	//{
+	//	ZR_P = 1;
+	//}
+	//if (key == 'i' || key == 'I')
+	//{
+	//	init_board();
+	//}
+
+	//if (key == 'o')
+	//{
+	//	look_x += 0.5;
+	//}
+	//if (key == 'p')
+	//{
+	//	look_y += 0.5;
+	//}
+	//if (key == '[')
+	//{
+	//	look_z += 0.5;
+	//}
+	//if (key == 'k')
+	//{
+	//	look_x -= 0.5;
+	//}
+	//if (key == 'l')
+	//{
+	//	look_y -= 0.5;
+	//}
+	//if (key == ';')
+	//{
+	//	look_z -= 0.5;
+	//}
+	//if (key == 'g' || key == 'G')
+	//{
+	//	if (greedon == false)
+	//	{
+	//		greedon = true;
+	//	}
+	//	else
+	//	{
+	//		greedon = false;
+	//	}
+	//}
+
+	if (key == 'h')
+	{
+		if (hint == true)
+		{
+			hint = false;
+		}
+		else
+		{
+			hint = true;
+		}
+	}
+	//if (key == 't')
+	//{
+	//	passblock++;
+	//}
+
+	//if (key == 'z' || key == 'Z')
+	//{
+	//	if (light_1 == false)
+	//	{
+	//		light_1 = true;
+	//	}
+	//	else
+	//	{
+	//		light_1 = false;
+	//	}
+	//}
+
+	//if (key == '1')
+	//{
+	//	LargeView();
+	//}
+	//if (key == '2')
+	//{
+	//	TopView();
+	//}
+	//if (key == '3')
+	//{
+	//	CameraView();
+	//}
+
+	//if (key == 'S')
+	//{
+	//	Loadfile();
+	//}
+
+	//if (key == '7')
+	//{
+	//	cheat += 1;
+	//	//pass = true;
+	//}
+	//if (key == '8')
+	//{
+	//	cutoff += 5;
+	//	//pass = true;
+	//}
+	//if (key == '9')
+	//{
+	//	mainscore += 50;
+	//}
+	if (key == ' ')
+	{
+		if (play_bool == false)
+		{
+			if (cageX == -55)
+			{
+				if (input == 0)
+				{
+					if (choice1 == true)
+					{
+						choice1 = false;
+					}
+					else
+					{
+						choice1 = true;
+					}
+				}
+				else
+				{
+					FILE *fp;
+
+					switch (input)
+					{
+					case 0:
+						choice1 = true;
+					case 1:
+						PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+						fp = fopen(MAP_1, "rt");
+						map = 1;
+						cout << map << endl;
+						break;
+					case 2:
+						PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+						fp = fopen(MAP_2, "rt");
+						map = 2;
+						cout << map << endl;
+						break;
+					case 3:
+						PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+						fp = fopen(MAP_3, "rt");
+						map = 3;
+						cout << map << endl;
+						break;
+					case 4:
+						PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+						fp = fopen(MAP_4, "rt");
+						map = 4;
+						cout << map << endl;
+						break;
+					case 5:
+						PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_SYNC); // 메뉴바 선택음...!
+						fp = fopen(MAP_5, "rt");
+						map = 5;
+						cout << map << endl;
+						break;
+					}
+					if (fp == NULL)
+					{
+						printf("\n실패\n");
+					}
+
+					printf("\n완료\n");
+
+					int cha;
+
+					while (feof(fp) == 0)
+					{
+						for (int i = 0; i < SIZE; i++)
+						{
+							for (int j = 0; j < SIZE; j++)
+							{
+								fscanf(fp, "%d", &cha);
+								makeboard[i][j] = cha;
+							}
+						}
+					}
+					fclose(fp);
+
+					play_bool = true;
+					hp_max += 1;
+				}
+			}
+			else if (cageX == 0) // Scoreboard....!
+			{
+				if (input == 0)
+				{
+					if (choice2 == true)
+					{
+						choice2 = false;
+					}
+					else
+					{
+						choice2 = true;
+					}
+				}
+				if (input == 1)
+				{
+					PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+
+					ifstream in("VeryEasy.txt");
+					string s;
+					int count = 0;
+					if (!in.is_open())
+					{
+						cout << "파일 x" << endl;
+					}
+					else
+					{
+						while (!in.eof())
+						{
+							count++;
+							in >> s;
+							cout << s << endl;
+						}
+					}
+				}
+				else if (input == 2)
+				{
+					PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+
+					ifstream in("Easy.txt");
+					string s;
+					int count = 0;
+					if (!in.is_open())
+					{
+						cout << "파일 x" << endl;
+					}
+					else
+					{
+						while (!in.eof())
+						{
+							count++;
+							in >> s;
+							cout << s << endl;
+						}
+					}
+				}
+				else if (input == 3)
+				{
+					PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+
+					ifstream in("Normal.txt");
+					string s;
+					int count = 0;
+					if (!in.is_open())
+					{
+						cout << "파일 x" << endl;
+					}
+					else
+					{
+						while (!in.eof())
+						{
+							count++;
+							in >> s;
+							cout << s << endl;
+						}
+					}
+				}
+				else if (input == 4)
+				{
+					PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+
+					ifstream in("Hard.txt");
+					string s;
+					int count = 0;
+					if (!in.is_open())
+					{
+						cout << "파일 x" << endl;
+					}
+					else
+					{
+						while (!in.eof())
+						{
+							count++;
+							in >> s;
+							cout << s << endl;
+						}
+					}
+				}
+				else if (input == 5)
+				{
+					PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+
+					ifstream in("VeryHard.txt");
+					string s;
+					int count = 0;
+					if (!in.is_open())
+					{
+						cout << "파일 x" << endl;
+					}
+					else
+					{
+						while (!in.eof())
+						{
+							count++;
+							in >> s;
+							cout << s << endl;
+						}
+					}
+				}
+			}
+			else
+			{
+				PlaySound(TEXT(SOUND_FILE_NAME_ON), NULL, SND_ASYNC | SND_ALIAS);
+				exit(-1);
+			}
+		}
+	}
+}
+
+void SpecialKeyboard(int key, int xx, int yy)
+{
+
+	if (play_bool == true)
+	{
+		if (key == GLUT_KEY_LEFT)
+		{
+			deltaAngle = -0.025f;
+		}
+		if (key == GLUT_KEY_RIGHT)
+		{
+			deltaAngle = 0.025f;
+		}
+		if (key == GLUT_KEY_UP)
+		{
+			deltaMove = 0.55 + speedup;
+		}
+		if (key == GLUT_KEY_DOWN)
+		{
+			deltaMove = -0.55 - speedup;
+		}
+	}
+	else // 게임 종료 표시..!
+	{
+		if (key == GLUT_KEY_LEFT)
+		{
+			if (cageX > -55)
+			{
+				cageX -= 55;
+				choice1 = false;
+				choice2 = false;
+			}
+		}
+		if (key == GLUT_KEY_RIGHT)
+		{
+			if (cageX < 55)
+			{
+				cageX += 55;
+				choice1 = false;
+				choice2 = false;
+			}
+		}
+		if (cageX == -55 || cageX == 0)
+		{
+			if (key == GLUT_KEY_UP)
+			{
+				if (cageY < 40)
+				{
+					input++;
+					cageY += 26;
+				}
+			}
+			if (key == GLUT_KEY_DOWN)
+			{
+				if (cageY > -65)
+				{
+					input--;
+					cageY -= 26;
+				}
+			}
+		}
+	}
+	glutSetWindow(mainWindow);
+	glutPostRedisplay();
+}
+
+void releaseKey(int key, int x, int y) {
+
+	switch (key)
+	{
+	case GLUT_KEY_LEFT:
+	case GLUT_KEY_RIGHT: deltaAngle = 0; break;
+
+	case GLUT_KEY_UP:
+	case GLUT_KEY_DOWN: deltaMove = 0; break;
+	}
+}
+
+// -----------------------------------
+//             MOUSE
+// -----------------------------------
+void MouseMove(int x, int y) {
+	if (xOrigin >= 0) {
+
+		// 카메라 앵글
+		deltaAngle = (x - xOrigin) * 0.001f;
+
+		// 카메라 디렉션
+		lx = sin(angle + deltaAngle);
+		lz = -cos(angle + deltaAngle);
+	}
+}
+
+void Mouse(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON)
+	{
+		if (state == GLUT_UP)
+		{
+			angle += deltaAngle;
+			deltaAngle = 0.0f;
+			xOrigin = -1;
+		}
+		else
+		{
+			xOrigin = x;
+		}
+	}
+}
+
+// -----------------------------------
+//             TIME
+// -----------------------------------
+
+bool warning_fuc()
+{
+	for (int i = 0; i < 8; i++)
+	{
+		if (static_ghost[i].warning == true)
+		{
+			//cout << "warning_BIG	" << i << endl;
+			return true;
+		}
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		if (static_ghost_1[i].warning == true)
+		{
+			//cout << "warning	" << i << endl;
+			return true;
+		}
+	}
+	return false;
+}
+
+void TimerFunction(int value)
+{
+	if (MainLight_bool == false)
+	{
+		if (warning_fuc() == false)
+		{
+			warning_sign = -15;
+		}
+		else
+		{
+			warning_sign = 10;
+			//cout << "Waring " << endl;
+		}
+	}
+
+	if (play_bool == true)
+	{
+		if (Light_rot < 360)
+		{
+			if (MainLight_bool == true)
+			{
+				Light_rot += 1.0;
+			}
+			else
+			{
+				Light_rot += 0.9;
+			}
+			mainscore--;
+		}
+		else
+		{
+			Light_rot = 0;
+			MainLight_bool = true;
+			PlaySound(TEXT(SOUND_FILE_NAME_MORNING), NULL, SND_ASYNC | SND_ALIAS);
+		}
+
+		if (Light_rot == 180)
+		{
+			small_z = 0;
+			Big_x = 0;
+			MainLight_bool = false;
+			PlaySound(TEXT(SOUND_FILE_NAME_DARK), NULL, SND_ASYNC | SND_ALIAS);
+		}
+	}
+	else
+	{
+		Light_rot = 0;
+	}
+
+	// 유령 이동 변수
+	if (play_bool == true)
+	{
+		Big_x += 0.08;
+		if (Big_x > 33)
+		{
+			Big_x = 0;
+		}
+
+		Big_z += 0.08;
+		if (Big_z > 10)
+		{
+			Big_z = 0;
+		}
+
+		small_z += 0.13;
+		if (small_z > 33)
+		{
+			small_z = 0;
+		}
+
+		obj_rot += 2;
+		if (obj_rot > 10000)
+		{
+			obj_rot = 0;
+		}
+
+		if (mainscore % 5 == 0) {
+			//color_change();
+			if (mainscore > 0 && mainscore < 500) {
+				distribution = 0.5;
+			}
+			if (mainscore > 500 && mainscore < 1000) {
+				distribution = 0.65;
+			}
+			if (mainscore > 1000 && mainscore < 1500) {
+				distribution = 0.8;
+			}
+			if (mainscore > 1500 && mainscore < 2000) {
+				distribution = 0.95;
+			}
+		}
+	}
+	//cout <<  speed_cnt << endl;
+	//cout << mini_pass << endl;
+
+	//cout << Big_x << endl;
+	//cout << Big_z << endl;
+	//cout << small_z << endl;
+	//cout << small_x << endl;
+	//cout << cnt << endl;
+	//cout << change << endl;
+
+
+
+
+	glutPostRedisplay();   // 화면 재 출력 
+	glutTimerFunc(timef, TimerFunction, 1); // 타이머함수 재 설정
+} // 시간
+
+
+  // -----------------------------------
+  //             MAIN and INIT
+  // -----------------------------------
+
+void init()
+{
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	// 키보드 마우스 콜백
+	glutIgnoreKeyRepeat(1);
+	glutKeyboardFunc(Keyboard);
+	glutSpecialFunc(SpecialKeyboard);
+	glutSpecialUpFunc(releaseKey);
+	//glutMouseFunc(Mouse);h
+	//glutMotionFunc(MouseMove);
+}
+
+int main(int argc, char **argv) {
+
+	for (int i = 0; i < SIZE; i++)
+	{
+		for (int j = 0; j < SIZE; j++)
+		{
+			static_block[i][j].max_x += i*1.1;
+			static_block[i][j].max_z += j*1.1;
+			static_block[i][j].min_x += i*1.1;
+			static_block[i][j].min_z += j*1.1;
+		}
+	} // 블럭 초기화
+
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(800, 800);
+	mainWindow = glutCreateWindow("컴그 최종프로젝트");
+	glutTimerFunc(timef, TimerFunction, 1);
+
+	// 윈도우
+	glutDisplayFunc(renderScene);
+	glutReshapeFunc(Reshape);
+	glutIdleFunc(DrawScene);
+	init();
+
+	// 서브윈도우
+	subWindow1 = glutCreateSubWindow(mainWindow, border, border, w - 2 * border, h / 2 - border * 3 / 2);
+	glutDisplayFunc(renderScenesw1);
+	init();
+
+	subWindow2 = glutCreateSubWindow(mainWindow, border, (h + border) / 2, w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+	glutDisplayFunc(renderScenesw2);
+	init();
+
+	subWindow3 = glutCreateSubWindow(mainWindow, (w + border) / 2, (h + border) / 2, w / 2 - border * 3 / 2, h / 2 - border * 3 / 2);
+	glutDisplayFunc(renderScenesw3);
+	init();
+
+	glutMainLoop();
+
+	return 1;
+}
+
+void initTextures()
+{
+	glGenTextures(1, textures);
+
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	pBytes = LoadDIBitmap("HP.bmp", &info);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 81, 82, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, pBytes);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
+}
