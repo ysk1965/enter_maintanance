@@ -1,6 +1,0 @@
-﻿  GameFramwork.cpp
-c:\users\dell\desktop\fancyplanet\fancyplanet\object.h(428): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-  코드를 생성하고 있습니다.
-c:\users\dell\desktop\fancyplanet\fancyplanet\object.cpp(1520): warning C4717: 'CPhysXObject::Update': 모든 제어 경로에서 재귀적입니다. 함수로 인해 런타임 스택 오버플로가 발생합니다.
-  코드를 생성했습니다.
-  FancyPlanet.vcxproj -> C:\Users\DELL\Desktop\FancyPlanet\x64\Release\FancyPlanet.exe
