@@ -1,0 +1,102 @@
+﻿과제전.obj : error LNK2005: "float diffuseL" (?diffuseL@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float look_z" (?look_z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float Big_x" (?Big_x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int subWindow1" (?subWindow1@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int cutoff" (?cutoff@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool bool_item" (?bool_item@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool choice2" (?choice2@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool cullingon" (?cullingon@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float look_x" (?look_x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int hint_sec" (?hint_sec@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float up_z" (?up_z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float center_z" (?center_z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool light_1" (?light_1@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float small_z" (?small_z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int mini_pass" (?mini_pass@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int passblock" (?passblock@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float ambientL" (?ambientL@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int XR_P" (?XR_P@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool shadingon" (?shadingon@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "long timebase" (?timebase@@3JA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "long start" (?start@@3JA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float up_y" (?up_y@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int frame" (?frame@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int speed_cnt" (?speed_cnt@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int xOrigin" (?xOrigin@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "long timing" (?timing@@3JA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float density" (?density@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float specularL" (?specularL@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "long finish" (?finish@@3JA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int input" (?input@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float (* colorbuffer)[3]" (?colorbuffer@@3PAY02MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int w" (?w@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float angle" (?angle@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float distribution" (?distribution@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool hint" (?hint@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int subWindow3" (?subWindow3@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool play_bool" (?play_bool@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int cageY" (?cageY@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float z_Rotate" (?z_Rotate@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int change" (?change@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct point * static_ghost" (?static_ghost@@3PAUpoint@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float center_y" (?center_y@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float center_x" (?center_x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "unsigned int * textures" (?textures@@3PAIA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int cheat" (?cheat@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float * fog_color" (?fog_color@@3PAMA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float up_x" (?up_x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float end_fog" (?end_fog@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int warning_sign" (?warning_sign@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int cnt" (?cnt@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool state" (?state@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float ly" (?ly@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float z" (?z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float deltaAngle" (?deltaAngle@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float start_fog" (?start_fog@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int timef" (?timef@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int (* makeboard)[22]" (?makeboard@@3PAY0BG@HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool depthon" (?depthon@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "class std::_Vector_iterator<class std::_Vector_val<struct std::_Simple_types<struct std::pair<struct std::pair<float,float>,struct std::pair<float,float> > > > > it" (?it@@3V?$_Vector_iterator@V?$_Vector_val@U?$_Simple_types@U?$pair@U?$pair@MM@std@@U12@@std@@@std@@@std@@@std@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int map" (?map@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "unsigned char * pBytes" (?pBytes@@3PAEA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float y_Rotate" (?y_Rotate@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "class std::vector<struct std::pair<struct std::pair<float,float>,struct std::pair<float,float> >,class std::allocator<struct std::pair<struct std::pair<float,float>,struct std::pair<float,float> > > > cont" (?cont@@3V?$vector@U?$pair@U?$pair@MM@std@@U12@@std@@V?$allocator@U?$pair@U?$pair@MM@std@@U12@@std@@@2@@std@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct point static_person" (?static_person@@3Upoint@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int border" (?border@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float deltaMove" (?deltaMove@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct point (* static_block)[22]" (?static_block@@3PAY0BG@Upoint@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int h" (?h@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool pass" (?pass@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float speedup" (?speedup@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float lx" (?lx@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool bool_line" (?bool_line@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool replay_bool" (?replay_bool@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int mini_item" (?mini_item@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool choice1" (?choice1@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float obj_rot" (?obj_rot@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float y" (?y@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct point * static_ghost_1" (?static_ghost_1@@3PAUpoint@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float lz" (?lz@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int subWindow2" (?subWindow2@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct ranking * rankbuffer" (?rankbuffer@@3PAUranking@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float look_y" (?look_y@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float x_Rotate" (?x_Rotate@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float Big_z" (?Big_z@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool pause" (?pause@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int replay_cnt" (?replay_cnt@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float Light_rot" (?Light_rot@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool greedon" (?greedon@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "char * s" (?s@@3PADA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int cageX" (?cageX@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "struct tagBITMAPINFO * info" (?info@@3PAUtagBITMAPINFO@@A)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int YR_P" (?YR_P@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int hp_max" (?hp_max@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int mapcollect" (?mapcollect@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "char * t" (?t@@3PADA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int mainscore" (?mainscore@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float small_x" (?small_x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int mainWindow" (?mainWindow@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "bool lightening" (?lightening@@3_NA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "float x" (?x@@3MA)이(가) Input.obj에 이미 정의되어 있습니다.
+과제전.obj : error LNK2005: "int ZR_P" (?ZR_P@@3HA)이(가) Input.obj에 이미 정의되어 있습니다.
+D:\portfolio\[OpenGL+STL]MazeRunner3D v.Replay\Release\3D_MazeRunner.exe : fatal error LNK1169: 여러 번 정의된 기호가 있습니다.
