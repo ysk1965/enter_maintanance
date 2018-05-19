@@ -1,5 +1,5 @@
 # enter_maintanance
-game
+
 0. [DirectX12 + PhysX]FancyPlanet
   # 3인 개발 게임으로 DirectX12 기본 프레임워크와 PhysX를 활용한 물리 및 충돌처리 부분, UI제작 및 게임 적용을 맡았습니다.
   - 만일 실행오류 시 [디렉터리 추가]
