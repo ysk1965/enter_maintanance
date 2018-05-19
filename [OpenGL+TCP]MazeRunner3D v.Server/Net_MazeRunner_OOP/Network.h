@@ -7,6 +7,7 @@
 #define BUFSIZE 2048
 #define BUFSIZE2 128
 
+#define SOCKET int
 extern SOCKET sock; // 소켓
 extern char buf[BUFSIZE2 + 1]; // 데이터 송수신 버퍼
 extern ForPingPong S_Get_Data;

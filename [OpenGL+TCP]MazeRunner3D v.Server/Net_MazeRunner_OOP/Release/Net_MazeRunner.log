@@ -1,7 +1,28 @@
-﻿  RenderScene.cpp
+﻿  Input.cpp
+  Main.cpp
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\main.cpp(42): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\main.cpp(43): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\main.cpp(44): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\main.cpp(45): warning C4244: '+=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\main.cpp(48): warning C4244: '인수': 'time_t'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  Network.cpp
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(163): warning C4305: '+=': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(249): warning C4305: '=': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(252): warning C4305: '=': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(273): warning C4244: '초기화 중': 'float'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(294): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\network.cpp(295): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  stdafx.cpp
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(45): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(46): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(47): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(54): warning C4305: '초기화 중': 'double'에서 'GLfloat'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(133): warning C4305: '=': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(146): warning C4305: '=': 'double'에서 'float'(으)로 잘립니다.
+d:\[portfolio]\enter_maintanance\[opengl+tcp]mazerunner3d v.server\net_mazerunner_oop\stdafx.cpp(148): warning C4305: '=': 'double'에서 'float'(으)로 잘립니다.
   코드를 생성하고 있습니다.
-  3 of 118 functions ( 2.5%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
+  114 of 120 functions (95.0%) were compiled, the rest were copied from previous compilation.
+    11 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
-  Net_MazeRunner.vcxproj -> D:\portfolio\[OpenGL+TCP]MazeRunner3D v.Server\Net_MazeRunner_OOP\Release\Net_MazeRunner.exe
+  Net_MazeRunner.vcxproj -> D:\[Portfolio]\enter_maintanance\[OpenGL+TCP]MazeRunner3D v.Server\Net_MazeRunner_OOP\Release\Net_MazeRunner.exe
