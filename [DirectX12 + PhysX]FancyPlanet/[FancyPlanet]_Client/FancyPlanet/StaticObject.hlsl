@@ -20,14 +20,11 @@ SamplerComparisonState gShadowSamplerState : register(s1);
 
 #include "Light.hlsl"
 
-Texture2D gtxtObject_Diffuse : register(t0);
-Texture2D gtxtObject_Normal : register(t1);
-Texture2D gtxtObject_Shadow : register(t2);
+Texture2D gtxtObject_Diffuse : register(t4);
+Texture2D gtxtObject_Normal : register(t5);
 Texture2D ShadowMap : register(t10);
 
-
-StructuredBuffer<INSTANCEDGAMEOBJECTINFO> gObjectInfos : register(t3);
-
+StructuredBuffer<INSTANCEDGAMEOBJECTINFO> gObjectInfos : register(t0);
 
 float CalcShadowFactor(float4 shadowPosH)
 {
@@ -59,13 +56,11 @@ float CalcShadowFactor(float4 shadowPosH)
 	return percentLit / 9.0f;
 }
 
-
 struct VS_INPUT
 {
 	float3 position : POSITION;
 	float2 uv : TEXCOORD;
 	float3 normal : NORMAL;
-	float3 tangent : TANGENT;
 };
 struct VS_OUTPUT
 {
@@ -73,8 +68,6 @@ struct VS_OUTPUT
 	float2 uv : TEXCOORD;
 	float3 normalW : NORMAL;
 	float3 positionW : POSITION;
-	float3 tangentW : TANGENT;
-	float3 bitangentW : BITANGENT;
 	float4 ShadowPosH : SHADOW;
 };
 
@@ -85,8 +78,6 @@ VS_OUTPUT Object_VS(VS_INPUT input, uint nInstanceID : SV_InstanceID)
 	output.positionW = (float3)mul(float4(input.position, 1.0f), gObjectInfos[nInstanceID].gmtxWorld);
 	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
 	output.normalW = normalize(mul(input.normal, (float3x3)gObjectInfos[nInstanceID].gmtxWorld));
-	output.tangentW = normalize(mul(input.tangent, (float3x3)gObjectInfos[nInstanceID].gmtxWorld));
-	output.bitangentW = normalize(cross(output.normalW, output.tangentW));
 	output.uv = input.uv;
 	output.ShadowPosH = mul(output.positionW, gmtxShadowTransform);
 	return(output);
@@ -106,21 +97,15 @@ float4 Object_PS(VS_OUTPUT input) : SV_TARGET
 	float2 uv1;
 	uv1.x = input.uv.x;
 	uv1.y = 1.0f - input.uv.y;
-
+	
 	float3 diffuse = gtxtObject_Diffuse.Sample(gWrapSamplerState, uv1).rgb;
 	
 	float3 N = normalize(input.normalW);
-	float3 T = normalize(input.tangentW - dot(input.tangentW, N) * N);
-	float3 B = cross(N, T);
-	float3x3 TBN = float3x3(T, B, N);
-	// 노말맵으로 부터 법선벡터를 가져온다.
+	
 	float3 normal = gtxtObject_Normal.Sample(gWrapSamplerState, uv1).rgb;
-	// -1 와 1사이 값으로 변환한다.
-	normal = 2.0f * normal - 1.0f;
-	float3 normalW = mul(normal, TBN);
-
+	
 	float shadowFactor = CalcShadowFactor(input.ShadowPosH);
-	float4 cllumination = Lighting(input.positionW, normalW, diffuse, 0, 30, shadowFactor);
-
+	float4 cllumination = Lighting(input.positionW, N, diffuse, 0, 30, shadowFactor);
+	
 	return cllumination;
 }

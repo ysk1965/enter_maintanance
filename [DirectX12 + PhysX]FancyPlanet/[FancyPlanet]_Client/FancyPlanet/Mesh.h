@@ -55,16 +55,16 @@ public:
 	XMFLOAT3						m_xmf3BoneWeights;
 
 public:
-	CAnimation1TexturedVertex() 
+	CAnimation1TexturedVertex()
 	{
-		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); 
-		m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f); 
+		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f);
 		m_xmf3BoneWeights = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	}
 	CAnimation1TexturedVertex(XMFLOAT3 xmf3Position, XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f), XMFLOAT3 xmf3BoneWeights = XMFLOAT3(0.0f, 0.0f, 0.0f))
 	{
-		m_xmf3Position = xmf3Position; 
-		m_xmf2TexCoord = xmf2TexCoord; 
+		m_xmf3Position = xmf3Position;
+		m_xmf2TexCoord = xmf2TexCoord;
 		m_xmf3BoneWeights = xmf3BoneWeights;
 	}
 	~CAnimation1TexturedVertex() { }
@@ -200,7 +200,7 @@ protected:
 public:
 	CRendererMeshVertex() { m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f); m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f); m_xmf3Tangent = XMFLOAT3(0.0f, 0.0f, 0.0f); m_nIndex = 0; }
 	CRendererMeshVertex(float x, float y, float z, XMFLOAT2 xmf2TexCoord, XMFLOAT3 xmf3tanget, XMFLOAT3 xmf3Normal, UINT nIndex) { m_xmf3Position = XMFLOAT3(x, y, z); m_xmf3Normal = xmf3Normal; m_xmf2TexCoord = xmf2TexCoord; m_xmf3Tangent = xmf3tanget; m_nIndex = nIndex; }
-	CRendererMeshVertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3tanget = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f), UINT nIndex = 0) { m_xmf3Position = xmf3Position; m_xmf3Normal = xmf3Normal; m_xmf2TexCoord = xmf2TexCoord; m_xmf3Tangent = xmf3tanget; m_nIndex = nIndex;	}
+	CRendererMeshVertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3tanget = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f), UINT nIndex = 0) { m_xmf3Position = xmf3Position; m_xmf3Normal = xmf3Normal; m_xmf2TexCoord = xmf2TexCoord; m_xmf3Tangent = xmf3tanget; m_nIndex = nIndex; }
 	~CRendererMeshVertex() { }
 };
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -210,21 +210,21 @@ class CAnimation1Vertex : public CIlluminatedTexturedTBNVertex
 protected:
 	XMFLOAT3						m_xmf3BoneWeights;
 public:
-	CAnimation1Vertex() 
+	CAnimation1Vertex()
 	{
-		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f); 
-		m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f); 
-		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f); 
-		m_xmf3Tangent = XMFLOAT3(0.0f, 0.0f, 0.0f); 
+		m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf2TexCoord = XMFLOAT2(0.0f, 0.0f);
+		m_xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		m_xmf3Tangent = XMFLOAT3(0.0f, 0.0f, 0.0f);
 		m_xmf3BoneWeights = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	}
 	CAnimation1Vertex(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3tanget = XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3 xmf3Normal = XMFLOAT3(0.0f, 0.0f, 0.0f)
-		, XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f), XMFLOAT3 xmf3BoneWeights = XMFLOAT3(0.0f, 0.0f, 0.0f)) 
+		, XMFLOAT2 xmf2TexCoord = XMFLOAT2(0.0f, 0.0f), XMFLOAT3 xmf3BoneWeights = XMFLOAT3(0.0f, 0.0f, 0.0f))
 	{
-		m_xmf3Position = xmf3Position; 
-		m_xmf3Normal = xmf3Normal; 
-		m_xmf2TexCoord = xmf2TexCoord; 
-		m_xmf3Tangent = xmf3tanget; 
+		m_xmf3Position = xmf3Position;
+		m_xmf3Normal = xmf3Normal;
+		m_xmf2TexCoord = xmf2TexCoord;
+		m_xmf3Tangent = xmf3tanget;
 		m_xmf3BoneWeights = xmf3BoneWeights;
 	}
 	~CAnimation1Vertex() { }
@@ -265,28 +265,46 @@ public:
 class CMesh
 {
 public:
+	CMesh() {};
 	CMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
 	CMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, UINT nVertices, XMFLOAT3 *pxmf3Positions, UINT nIndices, UINT *pnIndices);
+	CMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, TCHAR *pstrFileName);
+	void LoadMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, TCHAR *pstrFileName);
+	UINT GetStartIndex()
+	{
+		return m_nStartIndex;
+	};
+	void SetStartIndex(UINT nStartIndex)
+	{
+		m_nStartIndex = nStartIndex;
+	};
+	UINT GetStride()
+	{
+		return m_nStride;
+	};
 	virtual ~CMesh();
 
 private:
 	int								m_nReferences = 0;
 
 public:
-	void AddRef() 
+	void AddRef()
 	{
-		m_nReferences++; 
+		m_nReferences++;
 	}
-	void Release() 
+	void Release()
 	{
-		if (--m_nReferences <= 0) 
-			delete this; 
+		if (--m_nReferences <= 0)
+			delete this;
 	}
-
+	UINT GetnIndices()
+	{
+		return m_nIndices;
+	}
 	void ReleaseUploadBuffers();
 
 protected:
-	ID3D12Resource					*m_pd3dVertexBuffer = NULL;
+	ID3D12Resource * m_pd3dVertexBuffer = NULL;
 	ID3D12Resource					*m_pd3dVertexUploadBuffer = NULL;
 
 	ID3D12Resource					*m_pd3dIndexBuffer = NULL;
@@ -301,17 +319,45 @@ protected:
 	UINT							m_nOffset = 0;
 
 	UINT							m_nIndices = 0;
+	UINT							m_nSubIndices = 0;
 	UINT							m_nStartIndex = 0;
 	int								m_nBaseVertex = 0;
-
-	//[PhysX]
-	PxVec3*			m_pPxVtx;
-	PxU32*			m_pPxIndex;
 
 public:
 	UINT							m_nVertices = 0;
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList);
-	void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances);
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances);
+	ID3D12Resource* GetVertexBuffer()
+	{
+		return m_pd3dVertexBuffer;
+	}
+	ID3D12Resource* GetIndexBuffer()
+	{
+		return m_pd3dIndexBuffer;
+	}
+};
+class EmptyMesh : public CMesh
+{
+public:
+	EmptyMesh(ID3D12Resource* pd3dVertexBuffer, ID3D12Resource* pd3dIndexBuffer, UINT nStride, UINT nVertices, UINT nStartIndex, UINT nIndices, UINT nSubIndices)
+	{
+		m_pd3dVertexBuffer = pd3dVertexBuffer;
+		m_pd3dIndexBuffer = pd3dIndexBuffer;
+		m_nStride = nStride;
+		m_nVertices = nVertices;
+
+		m_d3dVertexBufferView.BufferLocation = m_pd3dVertexBuffer->GetGPUVirtualAddress();
+		m_d3dVertexBufferView.StrideInBytes = nStride;
+		m_d3dVertexBufferView.SizeInBytes = nStride * nVertices;
+
+		m_nIndices = nIndices;
+		m_nStartIndex = nStartIndex;
+		m_nSubIndices = nSubIndices;
+		m_d3dIndexBufferView.BufferLocation = m_pd3dIndexBuffer->GetGPUVirtualAddress();
+		m_d3dIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+		m_d3dIndexBufferView.SizeInBytes = sizeof(UINT) * m_nIndices;
+	}
+	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, UINT nInstances);
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,7 +377,7 @@ class CMeshAnimationTextured : public CMesh
 public:
 	CMeshAnimationTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
 	CMeshAnimationTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList
-		, UINT nVertices, XMFLOAT3 *pxmf3Positions, XMFLOAT2 *pxmf2UVs, XMFLOAT3 *xmf3BoneWeights, XMINT4 *xmi4BoneIndices, UINT nIndices, UINT *pnIndices);
+		, UINT nVertices, XMFLOAT3 *pxmf3Positions, XMFLOAT2 *pxmf2UVs, XMFLOAT3 *xmf3BoneWeights, XMINT4 *xmi4BoneIndices, UINT nIndices, UINT nSubIndices, UINT *pnIndices);
 	virtual ~CMeshAnimationTextured();
 };
 
@@ -376,7 +422,7 @@ class CRendererMesh : public CMeshIlluminatedTexturedTBN
 {
 public:
 	CRendererMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
-	CRendererMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, UINT nVertices, XMFLOAT3 *pxmf3Positions, XMFLOAT3 *pxmf3Tangents, XMFLOAT3 *pxmf3Normals, XMFLOAT2 *pxmf2UVs, UINT nIndex, UINT nIndices, UINT *pnIndices);
+	CRendererMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, UINT nVertices, XMFLOAT3 *pxmf3Positions, XMFLOAT3 *pxmf3Tangents, XMFLOAT3 *pxmf3Normals, XMFLOAT2 *pxmf2UVs, UINT nIndex, UINT nSubIndices, UINT nIndices, UINT *pnIndices);
 	virtual ~CRendererMesh();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,20 +430,20 @@ class CAnimationMesh : public CMeshIlluminatedTexturedTBN
 {
 public:
 	CAnimationMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
-	CAnimationMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, UINT nVertices, 
-		XMFLOAT3 *pxmf3Positions, XMFLOAT3 *pxmf3Tangents, XMFLOAT3 *pxmf3Normals, XMFLOAT2 *pxmf2UVs, 
-		XMFLOAT3 *pxmf3BoneWeights, XMINT4 *pxmi4BoneIndices, UINT nIndices, UINT *pnIndices);
+	CAnimationMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, UINT nVertices,
+		XMFLOAT3 *pxmf3Positions, XMFLOAT3 *pxmf3Tangents, XMFLOAT3 *pxmf3Normals, XMFLOAT2 *pxmf2UVs,
+		XMFLOAT3 *pxmf3BoneWeights, XMINT4 *pxmi4BoneIndices, UINT nIndices, UINT nSubIndices, UINT *pnIndices);
 	virtual ~CAnimationMesh();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-class CCubeMeshIlluminatedTBNTextured : public CMeshIlluminatedTexturedTBN
+class CCubeMesh : public CMeshTextured
 {
 public:
-	CCubeMeshIlluminatedTBNTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
-	virtual ~CCubeMeshIlluminatedTBNTextured();
+	CCubeMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 2.0f, float fHeight = 2.0f, float fDepth = 2.0f);
+	virtual ~CCubeMesh();
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -405,7 +451,7 @@ public:
 class CHeightMapImage
 {
 private:
-	BYTE						*m_pHeightMapPixels;
+	BYTE * m_pHeightMapPixels;
 
 	int							m_nWidth;
 	int							m_nLength;
@@ -432,7 +478,7 @@ protected:
 	XMFLOAT3					m_xmf3Scale;
 
 public:
-	CHeightMapGridMesh(PxPhysics* pPxPhysicsSDK, PxScene* pPxScene, PxControllerManager* pPxControllerManager, PxCooking* pCooking, PxRigidActor* PhysXRigidActor, PxTriangleMesh* PhysXTriangleMesh, PxMaterial* PhysXMeterial, ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, int xStart, int zStart, int nWidth, int nLength, XMFLOAT3 xmf3Scale = XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f), void *pContext = NULL);
+	CHeightMapGridMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, int xStart, int zStart, int nWidth, int nLength, XMFLOAT3 xmf3Scale = XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4 xmf4Color = XMFLOAT4(1.0f, 1.0f, 0.0f, 0.0f), void *pContext = NULL);
 	virtual ~CHeightMapGridMesh();
 
 	XMFLOAT3 GetScale() { return(m_xmf3Scale); }
@@ -460,3 +506,14 @@ public:
 	CSkyBoxRectMesh(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 20.0f, float fxPosition = 0.0f, float fyPosition = 0.0f, float fzPosition = 0.0f);
 	virtual ~CSkyBoxRectMesh();
 };
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CRectMeshIlluminatedTextured : public CMeshIlluminatedTextured
+{
+public:
+	CRectMeshIlluminatedTextured(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, float fWidth = 20.0f, float fHeight = 20.0f, float fDepth = 20.0f, float fxPosition = 0.0f, float fyPosition = 0.0f, float fzPosition = 0.0f);
+	virtual ~CRectMeshIlluminatedTextured();
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+

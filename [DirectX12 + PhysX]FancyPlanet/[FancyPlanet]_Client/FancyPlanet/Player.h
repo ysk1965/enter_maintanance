@@ -16,15 +16,21 @@
 #include "Object.h"
 #include "Camera.h"
 
+#define HUMAN_SKILL1 2.0f
+#define HUMAN_SKILL2 4.0f
+
+#define DRONE_SKILL1 2.0f
+#define DRONE_SKILL2 4.0f
+
+#define CREATURE_SKILL1 2.0f
+#define CREATURE_SKILL2 4.0f
+
 struct CB_PLAYER_INFO
 {
 	XMFLOAT4X4					m_xmf4x4World;
 };
 
-class CPlayer
-	: public CGameObject,
-	public PxUserControllerHitReport,
-	public PxControllerBehaviorCallback
+class CPlayer : public CGameObject
 {
 protected:
 	XMFLOAT3					m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -32,16 +38,11 @@ protected:
 	XMFLOAT3					m_xmf3Up = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	XMFLOAT3					m_xmf3Look = XMFLOAT3(0.0f, 0.0f, 1.0f);
 
-	XMFLOAT3					m_xmf3Velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	XMFLOAT3     				m_xmf3Gravity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3				m_xmf3OldPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	float           			m_fPitch = 0.0f;
 	float           			m_fYaw = 0.0f;
 	float           			m_fRoll = 0.0f;
-
-	float           			m_fMaxVelocityXZ = 0.0f;
-	float           			m_fMaxVelocityY = 0.0f;
-	float           			m_fFriction = 0.0f;
 
 	LPVOID						m_pPlayerUpdatedContext = NULL;
 	LPVOID						m_pCameraUpdatedContext = NULL;
@@ -50,25 +51,44 @@ protected:
 
 	float						m_fSpeed = 1.0f;
 	float						m_fTimeDelta = 0.0f;
+	bool						m_bMoveSkillState = false;
 
 	bool						m_bJumpState = false;
-	//////////////////////////
-	//		   PhysX		//
-	//////////////////////////
-	PxScene*					m_pScene;
 private:
 	XMFLOAT2				m_xmf2MousPos;
 	bool						m_bFalgs[FLAGE_NUM];
 	DWORD                m_dwStart[FLAGE_NUM];
-	PxController * m_pPxCharacterController;
 
 	CGameObject* pSphereMesh; // 충돌박스 입히기
-	FLOAT m_fFallvelocity;
-	FLOAT m_fFallAcceleration;
 	CAnimationObject* m_pRenderObject;
 	bool m_bAttackedState = false;
 	bool m_bKeySwitch = true;
+
+	int m_nCharacter = 0;
+
+	float m_fSkill1 = 1.0f;
+	float m_fSkill2 = 1.0f;
+
+
+	DWORD m_dwSkill1;
+	DWORD m_dwSkill2;
 public:
+	float GetSkill1Time()
+	{
+		return m_fSkill1;
+	}
+	float GetSkill2Time()
+	{
+		return m_fSkill2;
+	}
+	void SetCharacterType(int nType)
+	{
+		m_nCharacter = nType;
+	}
+	int GetCharacterType()
+	{
+		return m_nCharacter;
+	}
 	void SetMousPos(const float& fX, const float& fY)
 	{
 		m_xmf2MousPos.x = fX;
@@ -130,36 +150,33 @@ public:
 	{
 		m_bAttackedState = false;
 	}
-	void AddForceAtLocalPos(PxRigidBody& body, const PxVec3& force, const PxVec3& pos, PxForceMode::Enum mode, bool wakeup = true);
-	void AddForceAtPosInternal(PxRigidBody& body, const PxVec3& force, const PxVec3& pos, PxForceMode::Enum mode, bool wakeup);
+	void SetWorldPosition(const XMFLOAT4X4& xmf3Pos)
+	{
+		m_xmf3Position.x = xmf3Pos._41;
 
-	void onShapeHit(const PxControllerShapeHit & hit);
-	virtual void onControllerHit(const PxControllersHit& hit) {}
-	virtual void onObstacleHit(const PxControllerObstacleHit& hit) {}
-
-	void	BuildObject(PxPhysics* pPxPhysics, PxScene* pPxScene, PxMaterial *pPxMaterial, PxControllerManager *pPxControllerManager, void* pContext);
-
-	// Implements PxControllerBehaviorCallback
-	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxShape& shape, const PxActor& actor);
-	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxController& controller);
-	virtual PxControllerBehaviorFlags		getBehaviorFlags(const PxObstacle& obstacle);
-
-	bool IsOnGround(void);
-
-	void PxMove(float speed, float fTimeElapsed);
-
-	//enum STATE_PLAYER { IDLE, MOVE, LYING, JUMP, DEAD };
-	//DWORD			m_dwState;
-
-	//void setDwState(DWORD dwstate) { m_dwState = dwstate; }
-	//DWORD getDwState() { return m_dwState; }
-
-
+		if (m_nCharacter == SOLDIER)
+			m_xmf3Position.y = xmf3Pos._42 + 14.f;
+		else
+			m_xmf3Position.y = xmf3Pos._42;
+	
+		m_xmf3Position.z = xmf3Pos._43;
+	}
+	void SetLookVector(const XMFLOAT3& xmf3Look)
+	{
+		m_xmf3Look = xmf3Look;
+	}
+	void SetRightVector(const XMFLOAT3& xmf3Right)
+	{
+		m_xmf3Right = xmf3Right;
+	}
+	void SetUpVector(const XMFLOAT3& xmf3Up)
+	{
+		m_xmf3Up = xmf3Up;
+	}
 public:
-	CPlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature
-		, void *pContext = NULL, int nMeshes = 1);
+	CPlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, int nMeshes = 1);
 	virtual ~CPlayer();
-
+	void	BuildObject();
 	XMFLOAT3 GetPosition()
 	{
 		return(m_xmf3Position);
@@ -176,20 +193,12 @@ public:
 	{
 		return(m_xmf3Right);
 	}
-
-	float GetFallVelocity()
+	void SetPosition(const XMFLOAT3& xmf3Position)
 	{
-		return(m_fFallvelocity);
+		Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false);
 	}
-	void SetFallVelocity(float fVelocity) { m_fFallvelocity = fVelocity; }
-	void SetFriction(float fFriction) { m_fFriction = fFriction; }
-	void SetGravity(const XMFLOAT3& xmf3Gravity) { m_xmf3Gravity = xmf3Gravity; }
-	void SetMaxVelocityXZ(float fMaxVelocity) { m_fMaxVelocityXZ = fMaxVelocity; }
-	void SetMaxVelocityY(float fMaxVelocity) { m_fMaxVelocityY = fMaxVelocity; }
-	void SetVelocity(const XMFLOAT3& xmf3Velocity) { m_xmf3Velocity = xmf3Velocity; }
-	void SetPosition(const XMFLOAT3& xmf3Position) { Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false); }
-
-	const XMFLOAT3& GetVelocity() const { return(m_xmf3Velocity); }
+	void SetMoveSKillState(bool state) { m_bMoveSkillState = state; }
+	bool GetMoveSkillState() { return m_bMoveSkillState; }
 	float GetYaw() const { return(m_fYaw); }
 	float GetPitch() const { return(m_fPitch); }
 	float GetRoll() const { return(m_fRoll); }
@@ -201,8 +210,8 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
 	void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	void Rotate(float x, float y, float z);
-
-	void UpdateJumpState();
+	void CalcSkill();
+	void UseSkill(UINT nIndex);
 	void Update(float fTimeElapsed);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed);

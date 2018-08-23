@@ -1,27 +1,32 @@
 #pragma once
 #include "UIShader.h"
-#include "Camera.h"
+#include "Effect.h"
 #include "protocol.h"
 
-#define MESH_NUM 1
-#define MESH_NUM2 6
+#define MESH_NUM 3
+#define MESH_NUM2 5
 
+#define STATIC_OBJECT_NUM 10
 class CMesh;
 
 class CScene
 {
 public:
-	CScene(PxPhysics* pPxPhysicsSDK, PxScene* pPxScene, PxControllerManager* pPxControllerManager, PxCooking* pCooking);
-	CScene() {};
+	CScene();
 	~CScene();
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	CAnimationObject* FindBoneTypeObject(CAnimationObject* pRootObject, UINT nBoneTypeMesh);
-
-	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void SetObjectsVectorFromPacket(XMFLOAT3 pos, int n_ObjectIdx) {};
+	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12Resource* pShadowMap, int nCharaterType);
 	virtual void ReleaseObjects();
-
+	void SetLightsAndMaterialsShaderVariables(ID3D12Resource* pLights, ID3D12Resource* pMaterials, ID3D12Resource* pShadowMap);
+	virtual void StartGameSetting(array <PLAYER_INFO, MAX_USER>& PlayerArray, int myId) {};
+	virtual void ResetCharacter(UINT nIndex, UINT nCharacterType)
+	{}
+	virtual void SetSkyBoxPosition(const XMFLOAT3& xmf3Pos)
+	{}
 	virtual pair<XMFLOAT3, XMFLOAT3> GetProjectilePos(UINT nShell);
 
 	virtual ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice) { return NULL; };
@@ -34,166 +39,213 @@ public:
 		pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature);
 	}
 	bool ProcessInput(UCHAR *pKeysBuffer);
-	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera) {};
+	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera, int scene) {};
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL) = 0;
+	virtual void ShadowRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera* pCamera, SHADOW_INFO* pCameraInfo) = 0;
 	virtual void SkyBoxRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera) {}
-	virtual void ModelsSetPosition(const array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid) {};
+	virtual void ModelsSetPosition(array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid, int Type) {};
 	virtual void ReleaseUploadBuffers();
 	virtual void ReleaseShaderVariables() {};
-	virtual void SetVectorProjectile(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3Direction) {
-
+	virtual void SetObjectsVectorFromPacket(XMFLOAT3& pos, XMFLOAT4& quat, int n_ObjectIdx) {
 	};
-	virtual int SetProjectile(XMFLOAT3& xmf3Direction)
+	virtual void SetParticle(UINT nType, UINT nCharacterType, UINT nIndex, XMFLOAT3* xmf3Target)
+	{
+	};
+	virtual void UpdateEffect(const unsigned long& nCurrentFrameRate) {};
+	virtual void SelectCharacter(int nCharaterType) {};
+	virtual void SetCharacter(UINT nObjects, CAnimationObject** ppSoldier, CAnimationObject** ppDrone, CAnimationObject** ppAliens)
+	{};
+	virtual void BaseSetting(UINT Num, UINT nColor) {}
+	virtual UINT GetCharatersNum()
 	{
 		return 0;
 	};
-	virtual void ChangeAnimation(int newState) {};
+	virtual CAnimationObject** GetSoldierObjects() { return NULL; };
+	virtual CAnimationObject** GetDroneObjects() { return NULL; };
+	virtual CAnimationObject** GetAlienObjects() { return NULL; };
+
+	virtual void ChangeAnimation(int newState, array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid) {};
+	virtual void ChangeAnimationInLobby(int newState, UINT nCharacterType) {};
+
 	virtual CHeightMapTerrain * GetTerrain() { return NULL; };
 	void FrustumCulling(CCamera *pCamera);
-
-	CPlayer					*m_pPlayer;
+	CPlayer               *m_pPlayer;
 protected:
+	ID3D12Resource * m_pd3dcbLights = NULL;
+	ID3D12Resource            *m_pd3dcbMaterials = NULL;
+	ID3D12Resource            *m_pd3dDepthStencilBuffer = NULL;
 
-	//Physx SDK Member Variables =========================
-	PxPhysics * m_pPxPhysicsSDK;
-	PxScene*						m_pPxScene;
-	PxControllerManager*			m_pPxControllerManager;
-	PxMaterial*						m_pPxMaterial;
-	PxCooking*						m_pCooking;
-	//=====================================================
+	ID3D12RootSignature         *m_pd3dGraphicsRootSignature = NULL;
+	XMFLOAT3 m_xmf3ObjectsPos[OBJECTS_NUMBER];
+	XMFLOAT4 m_xmf4ObjectsQuaternion[OBJECTS_NUMBER];
 
-	ID3D12RootSignature			*m_pd3dGraphicsRootSignature = NULL;
-
-	int									m_nDivision = 0;
+	int                           m_nDivision = 0;
 };
- 
-//지형과 스카이박스를 그리는 씬 (카메라, 플레이어)
+
 class TerrainAndSkyBoxScene : public CScene
 {
 public:
-	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12Resource* pShadowMap, int nCharaterType);
 	virtual void ReleaseObjects();
 
 	virtual ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
-	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera);
+	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera, int scene);
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
+	virtual void ShadowRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera* pCamera, SHADOW_INFO* pCameraInfo);
 	virtual void ReleaseUploadBuffers();
 	virtual void ReleaseShaderVariables() {};
-	virtual CHeightMapTerrain * GetTerrain()
+	virtual CHeightMapTerrain* GetTerrain()
 	{
 		return m_pTerrain;
 	};
-	TerrainAndSkyBoxScene(PxPhysics* pPxPhysicsSDK, PxScene* pPxScene, PxControllerManager* pPxControllerManager, PxCooking* pCooking);
+	virtual void ObjectsSetting(ID3D12GraphicsCommandList *pd3dCommandList);
+	TerrainAndSkyBoxScene();
 	~TerrainAndSkyBoxScene();
+	void BaseSetting(UINT Num, UINT nColor);
+
 protected:
-	//Physx SDK Member Variables =========================
-	PxPhysics*						m_pPxPhysicsSDK;
-	PxScene*						m_pPxScene;
-	PxControllerManager*			m_pPxControllerManager;
-	PxMaterial*						m_pPxMaterial;
-	PxCooking*						m_pCooking;
-	//=====================================================
 private:
-	CHeightMapTerrain			*m_pTerrain = NULL;
-	CSkyBox						*m_pSkyBox = NULL;
+	CHeightMapTerrain * m_pTerrain = NULL;
+	StaticObjectShader *m_pStaticObjectShader = NULL;
+	StaticObject **m_ppStaticObjects = NULL;
 };
 
-//마지막순서로 그려줘야할 씬
-class UIScene : public CScene
+class EffectScene : public CScene
 {
 public:
-	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12Resource* pShadowMap, int nCharaterType);
 	virtual void ReleaseObjects();
 
+	virtual void SetParticle(UINT nType, UINT nCharacterType, UINT nIndex, XMFLOAT3* pxmf3Target);
+	void Update(CCamera* pCamera);
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
+	virtual void ShadowRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera* pCamera, SHADOW_INFO* pCameraInfo);
+	ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
+	virtual void UpdateEffect(const unsigned long& nCurrentFrameRate);
+	void SetCharacter(UINT nObjects, CAnimationObject** ppSoldier, CAnimationObject** ppDrone, CAnimationObject** ppAliens)
+	{
+		m_nObjects = nObjects;
 
-	UIScene();
-	~UIScene();
+		m_ppSoldier = new CAnimationObject*[nObjects];
+		m_ppDrone = new CAnimationObject*[nObjects];
+		m_ppAliens = new CAnimationObject*[nObjects];
+
+		m_ppSoldier = ppSoldier;
+		m_ppDrone = ppDrone;
+		m_ppAliens = ppAliens;
+	};
+
+	EffectScene();
+	~EffectScene();
 private:
-	MiniUIShader * m_pMiniUIShader = NULL;
-	MiniMapShader* m_pMiniMapShader = NULL;
-	ArrowShader* m_pArrowShader = NULL;
-	CrossShader* m_pCrossShader = NULL;
-	ScoreBoardShader* m_pScoreboardShader = NULL;
-	TimeNumberShader* m_pTimeNumberShader = NULL;
-	GravityBarShader* m_pGravityBarShader = NULL;
-	GravityPointerShader* m_pGravityPointerShader = NULL;
+	CMesh * *m_ppMeshes;
+	UINT      m_nMeshes;
+
+	UINT m_nObjects = 0;
+	CAnimationObject** m_ppSoldier = NULL;
+	CAnimationObject** m_ppDrone = NULL;
+	CAnimationObject** m_ppAliens = NULL;
+
+	D3D12_GPU_DESCRIPTOR_HANDLE      m_d3dSrvGPUDescriptorHandle;
+	SparkEffect** m_ppSparkEffect = NULL;
+	MeshEffect** m_ppMeshEffect = NULL;
+	TeleportEffect** m_ppTeleportEffect = NULL;
+	DroneEffect** m_ppDroneEffect = NULL;
+	JumpEffect** m_ppJumpEffect = NULL;
+	SphereEffect** m_ppSphereEffect = NULL;
+	BloodEffect** m_ppBloodEffect = NULL;
+	DroneSkillEffect** m_ppDroneSkillEffect = NULL;
+
+	CEffectShader* m_pFlareShader = NULL;
+	MeshEffectShader* m_pMeshEffectShader = NULL;
 };
 
 //애니메이션이 들어간 오브젝트를 그리는 씬
 class CharacterScene : public CScene
 {
 public:
-	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12Resource* pShadowMap, int nCharaterType);
 	virtual void ReleaseObjects();
 	virtual ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
-	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera);
+	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera, int scene);
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
+	virtual void ShadowRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera* pCamera, SHADOW_INFO* pCameraInfo);
 	virtual void ReleaseUploadBuffers();
 	virtual void ReleaseShaderVariables();
-	virtual void ChangeAnimation(int newState);
+	virtual void ChangeAnimationInLobby(int newState, UINT nCharacterType);
+	virtual void ChangeAnimation(int newState, array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid);
 	void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
 	void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
-	void CopyObject(CAnimationObject* pSample, CAnimationObject** ppObjects, UINT nSize);
-	CAnimationObject* FindMeshRendererObject(CAnimationObject* pRootObject, UINT nRendererMesh);
-	virtual void ModelsSetPosition(const array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid);
+	void CopyObject(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, CAnimationObject* pSample, CAnimationObject** ppObjects, UINT nSize, UINT nAnimationFactor);
+	virtual void ModelsSetPosition(array <PLAYER_INFO, MAX_USER>& PlayerArray, int myid, int Type);
+	CAnimationObject* FindAnimationFactorObject(CAnimationObject* pRootObject, int nIndex);
+	virtual void SelectCharacter(int nCharaterType);
+	void CalcCharacterIndex(array <PLAYER_INFO, MAX_USER>& PlayerArray);
+	virtual void ResetCharacter(UINT nIndex, UINT nCharacterType);
+	void SetPlayer(array <PLAYER_INFO, MAX_USER>& PlayerArray, UINT myid);
+	virtual void StartGameSetting(array <PLAYER_INFO, MAX_USER>& PlayerArray, int myId);
 
-	CharacterScene(PxPhysics* pPxPhysicsSDK, PxScene* pPxScene, PxControllerManager* pPxControllerManager, PxCooking* pCooking);
+	virtual CAnimationObject** GetSoldierObjects()
+	{
+		return m_ppSoldierObjects;
+	}
+	virtual CAnimationObject** GetDroneObjects()
+	{
+		return m_ppDroneObjects;
+	}
+	virtual CAnimationObject** GetAlienObjects()
+	{
+		return m_ppAliens;
+	}
+	UINT GetCharatersNum()
+	{
+		return m_nObjects;
+	};
+	CharacterScene();
 	~CharacterScene();
 
 private:
-	ID3D12Resource * m_pd3dcbGameObjects = NULL;
-	BONE_TRANSFORMS				*m_pcbMappedGameObjects = NULL;
+	CAnimationObject * *m_ppSampleAnimationObjects = NULL;
 
-	ID3D12Resource					*m_pd3dcbGameObjects2 = NULL;
-	BONE_TRANSFORMS2			*m_pcbMappedGameObjects2 = NULL;
+	CAnimationObject    **m_ppSoldierObjects = NULL;
+	CAnimationObject    **m_ppDroneObjects = NULL;
+	CAnimationObject    **m_ppAliens = NULL;
 
-	ID3D12Resource					*m_pd3dcbGameObjects3 = NULL;
-	BONE_TRANSFORMS3				*m_pcbMappedGameObjects3 = NULL;
-
-	CPhysXObject		**m_ppPxObjects = NULL;
-	CAnimationObject **m_ppSampleAnimationObjects = NULL;
-
-	CAnimationObject	 **m_ppSoldierObjects = NULL;
-
-
-	int							m_nObjects = 0;
+	UINT*                  m_pnAnimationFactor = NULL;
+	int m_nCharacterIndex = 0;
+	int                     m_nObjects = 0;
 	AnimationController **m_ppAnimationController = NULL;
-};
 
+};
 class ObjectScene : public CScene
 {
 public:
-	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12Resource* pShadowMap, int nCharaterType);
 	virtual void ReleaseObjects();
-	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera);
+	virtual void AnimateObjects(float fTimeElapsed, CCamera *pCamera, int scene);
 
-	virtual pair<XMFLOAT3, XMFLOAT3> GetProjectilePos(UINT nShell);
-	virtual void SetVectorProjectile(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3Direction);
-	
-	virtual int SetProjectile(XMFLOAT3& xmf3Direction);
 	virtual void ReleaseShaderVariables();
 	virtual ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
+	virtual void ShadowRender(ID3D12GraphicsCommandList *pd3dCommandList, CCamera* pCamera, SHADOW_INFO* pCameraInfo);
 	virtual void ReleaseUploadBuffers();
-
-	ObjectScene(PxPhysics* pPxPhysicsSDK, PxScene* pPxScene, PxControllerManager* pPxControllerManager, PxCooking* pCooking);
+	virtual void SetObjectsVectorFromPacket(XMFLOAT3& pos, XMFLOAT4& quat, int n_ObjectIdx);
+	virtual void SetSkyBoxPosition(const XMFLOAT3& xmf3Pos);
+	ObjectScene();
 	~ObjectScene();
 
-	CPhysXObject **m_ppSampleObjects = NULL;
-	DWORD		m_fReloadtime = 0;
+	CGameObject **m_ppSampleObjects = NULL;
 private:
 	UINT m_nObjects = 0;
 
-	vector<CPhysXObject*> m_vBullet;
+	CGameObject** m_ppAsteroid0 = NULL;
+	CGameObject** m_ppAsteroid1 = NULL;
+	CGameObject** m_ppAsteroid2 = NULL;
+	CGameObject** m_ppAsteroid3 = NULL;
+	CGameObject** m_ppAsteroid4 = NULL;
 
-	CPhysXObject** m_ppShell = NULL;
+	CSkyBox						*m_pSkyBox = NULL;
 
-	CPhysXObject** m_ppAsteroid0 = NULL;
-	CPhysXObject** m_ppAsteroid1 = NULL;
-	CPhysXObject** m_ppAsteroid2 = NULL;
-	CPhysXObject** m_ppAsteroid3 = NULL;
-	CPhysXObject** m_ppAsteroid4 = NULL;
-
-	CPhysXObject **m_ppPxObjects = NULL;
+	float m_fObjectUpdateTime = 0.f;
+	bool m_isObjectLoad = false;
 };
