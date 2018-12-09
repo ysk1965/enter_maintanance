@@ -58,10 +58,10 @@ void CGameFramework::ProcessInput()
 	{
 		if (GetKeyboardState(pKeysBuffer) && m_ppScenes[CHARACTER])
 			bProcessedByScene = m_ppScenes[CHARACTER]->ProcessInput(pKeysBuffer);
+			
 
 		if (!bProcessedByScene)
 		{
-
 			DWORD dwDirection = 0;
 			if (m_pPlayer->GetRenderObject()->m_pAnimationTime->m_iState != static_cast<int>(SOLDIER::ANIMATION_SHOT))
 			{
@@ -173,6 +173,10 @@ void CGameFramework::ProcessInput()
 							m_FmodSound.PlaySoundEffect(static_cast<int>(EFFECTSOUND::CREATURE_JUMP));
 						}
 					}
+					else
+					{
+						m_pPlayer->SetPosition(XMFLOAT3(g_my_info.pos._41, g_my_info.pos._42, g_my_info.pos._43));
+					}
 					keystate = true;
 				}
 
@@ -245,6 +249,7 @@ void CGameFramework::ProcessInput()
 					WSASend(g_mysocket, &send_wsabuf, 1, &iobyte, 0, NULL, NULL);
 				}
 
+				m_pPlayer->SetPosition(XMFLOAT3(g_my_info.pos._41, g_my_info.pos._42, g_my_info.pos._43));
 				//if (dwDirection)
 				//	m_pPlayer->Move(dwDirection, 620.0f * m_GameTimer.GetTimeElapsed(), true);
 			}

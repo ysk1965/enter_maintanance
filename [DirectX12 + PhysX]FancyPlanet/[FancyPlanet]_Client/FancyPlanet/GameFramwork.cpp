@@ -113,7 +113,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 	BuildLobby();
 
-	m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
+	//m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
 	return(true);
 }
 void CGameFramework::FrameAdvanceInEnd()
@@ -607,7 +607,12 @@ void CGameFramework::NotifyIdleState()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-
+	
+	if (m_iSceneState == INGAME)
+	{
+		m_pCamera->Rotate(0, 0, 0);
+		m_ppScenes[OBJECT]->SetSkyBoxPosition(m_pCamera->GetPosition());
+	}
 	if (m_pPlayer)
 	{
 		//m_pCamera->Rotate(0, 0, 0);
@@ -705,134 +710,141 @@ void CGameFramework::PrepareFrame()
 }
 
 void CGameFramework::FrameAdvance()
-{
-	m_GameTimer.Tick(0.0f);
-	AnimateObjects();
-	ProcessInput();
-	UpdateLightsAndMaterialsShaderVariables();
-	PrepareFrame();
-
-	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
-
-	if (m_iSceneState == INGAME)
+{	
+	if(m_nIsLobby == 2)
 	{
-		for (int i = 0; i < OBJECTS_NUMBER; ++i)
-		{
-			m_ppScenes[OBJECT]->SetObjectsVectorFromPacket(m_xmf3ObjectsPos[i], m_xmf4ObjectsQuaternion[i], i);
-		}
+		FrameAdvanceInEnd();
+	}
+	else
+	{
+		m_GameTimer.Tick(0.0f);
+		AnimateObjects();
+		ProcessInput();
+		UpdateLightsAndMaterialsShaderVariables();
+		PrepareFrame();
 
-		for (int i = 0; i < MAX_USER; ++i)
+		m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+
+		if (m_iSceneState == INGAME)
 		{
-			if (g_player_info[i].m_isconnected&&g_player_info[i].m_isJumpState == true)
+			for (int i = 0; i < OBJECTS_NUMBER; ++i)
 			{
-				if (i != g_myid)
-				{
-					if (g_player_info[i].m_iCharacterType == SOLDIER)
-						m_ppScenes[CHARACTER]->ChangeAnimation(static_cast<int>(SOLDIER::ANIMATION_MOVE_JUMP), g_player_info, i);
-					else if (g_player_info[i].m_iCharacterType == CREATURE)
-						m_ppScenes[CHARACTER]->ChangeAnimation(static_cast<int>(CREATURE::ANIMATION_MOVE_JUMP), g_player_info, i);
-				}
+				m_ppScenes[OBJECT]->SetObjectsVectorFromPacket(m_xmf3ObjectsPos[i], m_xmf4ObjectsQuaternion[i], i);
 			}
 
-			if (g_player_info[i].m_isMoveSKillState)
+			for (int i = 0; i < MAX_USER; ++i)
 			{
-				if (g_player_info[i].m_iCharacterType == DRONE)
+				if (g_player_info[i].m_isconnected&&g_player_info[i].m_isJumpState == true)
 				{
-					m_ppScenes[EFFECT]->SetParticle(1, DRONE, g_player_info[i].Character_idx, NULL);
-					g_player_info[i].anim_state = static_cast<int>(DRONE::ANIMATION_SKILL);
-					g_player_info[i].m_isMoveSKillState = false;
+					if (i != g_myid)
+					{
+						if (g_player_info[i].m_iCharacterType == SOLDIER)
+							m_ppScenes[CHARACTER]->ChangeAnimation(static_cast<int>(SOLDIER::ANIMATION_MOVE_JUMP), g_player_info, i);
+						else if (g_player_info[i].m_iCharacterType == CREATURE)
+							m_ppScenes[CHARACTER]->ChangeAnimation(static_cast<int>(CREATURE::ANIMATION_MOVE_JUMP), g_player_info, i);
+					}
 				}
-				else if (g_player_info[i].m_iCharacterType == SOLDIER)
-					m_ppScenes[EFFECT]->SetParticle(3, SOLDIER, g_player_info[i].m_iCharacterIndex, NULL);
 
+				if (g_player_info[i].m_isMoveSKillState)
+				{
+					if (g_player_info[i].m_iCharacterType == DRONE)
+					{
+						m_ppScenes[EFFECT]->SetParticle(1, DRONE, g_player_info[i].Character_idx, NULL);
+						g_player_info[i].anim_state = static_cast<int>(DRONE::ANIMATION_SKILL);
+						g_player_info[i].m_isMoveSKillState = false;
+					}
+					else if (g_player_info[i].m_iCharacterType == SOLDIER)
+						m_ppScenes[EFFECT]->SetParticle(3, SOLDIER, g_player_info[i].m_iCharacterIndex, NULL);
+
+				}
 			}
 		}
-	}
-	UINT r[] = { Team[REDTeam].m_iKill,Team[REDTeam].m_iNumberOfterritories };
-	UINT b[] = { Team[BLUETeam].m_iKill,Team[BLUETeam].m_iNumberOfterritories };
-	UINT g[] = { Team[GREENTeam].m_iKill,Team[GREENTeam].m_iNumberOfterritories };
+		UINT r[] = { Team[REDTeam].m_iKill,Team[REDTeam].m_iNumberOfterritories };
+		UINT b[] = { Team[BLUETeam].m_iKill,Team[BLUETeam].m_iNumberOfterritories };
+		UINT g[] = { Team[GREENTeam].m_iKill,Team[GREENTeam].m_iNumberOfterritories };
 
-	m_pUIShader->SetAndCalculateScoreLocation(r, b, g);
-	m_pUIShader->SetAndCalculateTimeLocation(GAMETIME - m_fgametime);
-	m_pUIShader->SetAndCalculateHPLocation(g_my_info.m_iHP);
-	m_pUIShader->SetSkillCover(m_pPlayer->GetSkill1Time(), m_pPlayer->GetSkill2Time());
+		m_pUIShader->SetAndCalculateScoreLocation(r, b, g);
+		m_pUIShader->SetAndCalculateTimeLocation(GAMETIME - m_fgametime);
+		m_pUIShader->SetAndCalculateHPLocation(g_my_info.m_iHP);
+		m_pUIShader->SetSkillCover(m_pPlayer->GetSkill1Time(), m_pPlayer->GetSkill2Time());
 
-	if (m_iSceneState == INGAME)
-	{
-		m_ppScenes[CHARACTER]->ModelsSetPosition(g_player_info, g_myid, m_nCharacterType);
-	}
-	for (int i = 0; i < NUM_SUBSETS; i++)
-	{
-		SetEvent(m_workerBeginRenderFrame[i]);
-	}
+		if (m_iSceneState == INGAME)
+		{
+			m_ppScenes[CHARACTER]->ModelsSetPosition(g_player_info, g_myid, m_nCharacterType);
+		}
+		for (int i = 0; i < NUM_SUBSETS; i++)
+		{
+			SetEvent(m_workerBeginRenderFrame[i]);
+		}
 
-	WaitForMultipleObjects(NUM_SUBSETS, m_workerFinishShadowPass, TRUE, INFINITE);
+		WaitForMultipleObjects(NUM_SUBSETS, m_workerFinishShadowPass, TRUE, INFINITE);
 
-	ID3D12CommandList *ppd3dCommandLists1[] = { m_pd3dPreShadowCommandList
-		, m_ppd3dShadowCommandLists[0], m_ppd3dShadowCommandLists[1],  m_ppd3dShadowCommandLists[2], m_ppd3dShadowCommandLists[3] };
+		ID3D12CommandList *ppd3dCommandLists1[] = { m_pd3dPreShadowCommandList
+			, m_ppd3dShadowCommandLists[0], m_ppd3dShadowCommandLists[1],  m_ppd3dShadowCommandLists[2], m_ppd3dShadowCommandLists[3] };
 
-	m_pd3dCommandQueue->ExecuteCommandLists(NUM_SUBSETS + 1, ppd3dCommandLists1);
-	WaitForGpuComplete();
-	WaitForMultipleObjects(NUM_SUBSETS, m_workerFinishedRenderFrame, TRUE, INFINITE);
+		m_pd3dCommandQueue->ExecuteCommandLists(NUM_SUBSETS + 1, ppd3dCommandLists1);
+		WaitForGpuComplete();
+		WaitForMultipleObjects(NUM_SUBSETS, m_workerFinishedRenderFrame, TRUE, INFINITE);
 
-	::SynchronizeResourceTransition(m_ppd3dCommandLists[1], m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
-	::SynchronizeResourceTransition(m_ppd3dCommandLists[1], m_pd3dDepthStencilBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
+		::SynchronizeResourceTransition(m_ppd3dCommandLists[1], m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		::SynchronizeResourceTransition(m_ppd3dCommandLists[1], m_pd3dDepthStencilBuffer, D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_GENERIC_READ);
 
-	for (int i = 0; i < NUM_SUBSETS; i++)
-	{
-		m_ppd3dCommandLists[i]->Close();
-	}
+		for (int i = 0; i < NUM_SUBSETS; i++)
+		{
+			m_ppd3dCommandLists[i]->Close();
+		}
 
-	ID3D12CommandList *ppd3dCommandLists2[] = { m_pd3dScreenCommandList
-		, m_ppd3dCommandLists[3],  m_ppd3dCommandLists[2], m_ppd3dCommandLists[0],  m_ppd3dCommandLists[1] };
+		ID3D12CommandList *ppd3dCommandLists2[] = { m_pd3dScreenCommandList
+			, m_ppd3dCommandLists[3],  m_ppd3dCommandLists[2], m_ppd3dCommandLists[0],  m_ppd3dCommandLists[1] };
 
-	HRESULT hResult = m_pd3dScreenCommandList->Close();
+		HRESULT hResult = m_pd3dScreenCommandList->Close();
 
-	m_pd3dCommandQueue->ExecuteCommandLists(NUM_SUBSETS + 1, ppd3dCommandLists2);
-
-	WaitForGpuComplete();
-
-	//계산쉐이더 부분
-	{
-		hResult = m_pd3dScreenCommandAllocator->Reset();
-		hResult = m_pd3dScreenCommandList->Reset(m_pd3dScreenCommandAllocator, NULL);
-		m_pd3dScreenCommandList->RSSetViewports(1, m_pCamera->GetViewport());
-		m_pd3dScreenCommandList->RSSetScissorRects(1, m_pCamera->GetScissorRect());
-
-		m_pComputeShader->Compute(m_pd3dDevice, m_pd3dScreenCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex]);
-		::SynchronizeResourceTransition(m_pd3dScreenCommandList, m_pd3dDepthStencilBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-		hResult = m_pd3dScreenCommandList->Close();
-
-		ID3D12CommandList *ppd3dScreenCommandLists[] = { m_pd3dScreenCommandList };
-		m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dScreenCommandLists);
+		m_pd3dCommandQueue->ExecuteCommandLists(NUM_SUBSETS + 1, ppd3dCommandLists2);
 
 		WaitForGpuComplete();
+
+		//계산쉐이더 부분
+		{
+			hResult = m_pd3dScreenCommandAllocator->Reset();
+			hResult = m_pd3dScreenCommandList->Reset(m_pd3dScreenCommandAllocator, NULL);
+			m_pd3dScreenCommandList->RSSetViewports(1, m_pCamera->GetViewport());
+			m_pd3dScreenCommandList->RSSetScissorRects(1, m_pCamera->GetScissorRect());
+
+			m_pComputeShader->Compute(m_pd3dDevice, m_pd3dScreenCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex]);
+			::SynchronizeResourceTransition(m_pd3dScreenCommandList, m_pd3dDepthStencilBuffer, D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+			hResult = m_pd3dScreenCommandList->Close();
+
+			ID3D12CommandList *ppd3dScreenCommandLists[] = { m_pd3dScreenCommandList };
+			m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dScreenCommandLists);
+
+			WaitForGpuComplete();
+		}
+
+		//UI 그리기
+		{
+			hResult = m_pd3dScreenCommandAllocator->Reset();
+			hResult = m_pd3dScreenCommandList->Reset(m_pd3dScreenCommandAllocator, NULL);
+			m_pd3dScreenCommandList->RSSetViewports(1, m_pCamera->GetViewport());
+			m_pd3dScreenCommandList->RSSetScissorRects(1, m_pCamera->GetScissorRect());
+
+			m_pd3dScreenCommandList->OMSetRenderTargets(1, &m_pd3dRtvSwapChainBackBufferCPUHandles[m_nSwapChainBufferIndex], TRUE, &m_d3dDsvDepthStencilBufferCPUHandle);
+
+			m_pUIShader->Render(m_pd3dScreenCommandList, m_pCamera);
+
+			::SynchronizeResourceTransition(m_pd3dScreenCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+			hResult = m_pd3dScreenCommandList->Close();
+
+			ID3D12CommandList *ppd3dScreenCommandLists[] = { m_pd3dScreenCommandList };
+			m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dScreenCommandLists);
+			WaitForGpuComplete();
+		}
+
+		m_pdxgiSwapChain->Present(0, 0);
+
+		MoveToNextFrame();
+
+		m_ppScenes[EFFECT]->UpdateEffect(m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37));
+		::SetWindowText(m_hWnd, m_pszFrameRate);
 	}
-
-	//UI 그리기
-	{
-		hResult = m_pd3dScreenCommandAllocator->Reset();
-		hResult = m_pd3dScreenCommandList->Reset(m_pd3dScreenCommandAllocator, NULL);
-		m_pd3dScreenCommandList->RSSetViewports(1, m_pCamera->GetViewport());
-		m_pd3dScreenCommandList->RSSetScissorRects(1, m_pCamera->GetScissorRect());
-
-		m_pd3dScreenCommandList->OMSetRenderTargets(1, &m_pd3dRtvSwapChainBackBufferCPUHandles[m_nSwapChainBufferIndex], TRUE, &m_d3dDsvDepthStencilBufferCPUHandle);
-
-		m_pUIShader->Render(m_pd3dScreenCommandList, m_pCamera);
-
-		::SynchronizeResourceTransition(m_pd3dScreenCommandList, m_ppd3dSwapChainBackBuffers[m_nSwapChainBufferIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		hResult = m_pd3dScreenCommandList->Close();
-
-		ID3D12CommandList *ppd3dScreenCommandLists[] = { m_pd3dScreenCommandList };
-		m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dScreenCommandLists);
-		WaitForGpuComplete();
-	}
-
-	m_pdxgiSwapChain->Present(0, 0);
-
-	MoveToNextFrame();
-
-	m_ppScenes[EFFECT]->UpdateEffect(m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37));
-	::SetWindowText(m_hWnd, m_pszFrameRate);
 }

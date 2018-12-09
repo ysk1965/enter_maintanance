@@ -1,1 +1,2 @@
-﻿  3D_MazeRunner.vcxproj -> D:\[Portfolio]\enter_maintanance\[OpenGL]MazeRunner3D\3D_MazeRunnerV2.5\Release\3D_MazeRunner.exe
+﻿  과제전.cpp
+c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\glut.h(17): fatal error C1083: 포함 파일을 열 수 없습니다. 'freeglut_std.h': No such file or directory

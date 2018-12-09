@@ -193,9 +193,11 @@ public:
 	{
 		return(m_xmf3Right);
 	}
-	void SetPosition(const XMFLOAT3& xmf3Position)
+	void SetPosition(XMFLOAT3& xmf3Position)
 	{
-		Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false);
+		m_xmf3Position.x = xmf3Position.x;
+		m_xmf3Position.y = xmf3Position.y;
+		m_xmf3Position.z = xmf3Position.z;
 	}
 	void SetMoveSKillState(bool state) { m_bMoveSkillState = state; }
 	bool GetMoveSkillState() { return m_bMoveSkillState; }

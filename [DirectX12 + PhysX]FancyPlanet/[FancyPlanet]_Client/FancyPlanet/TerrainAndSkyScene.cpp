@@ -60,7 +60,7 @@ void TerrainAndSkyBoxScene::AnimateObjects(float fTimeElapsed, CCamera *pCamera,
 void TerrainAndSkyBoxScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
 	XMFLOAT3 p = m_pPlayer->GetPosition();
-	printf("%lf, %lf, %lf\n", p.x, p.y, p.z);
+	//printf("%lf, %lf, %lf\n", p.x, p.y, p.z);
 
 	m_ppStaticObjects[2]->SetChangeColor(pd3dCommandList, GetTickCount());
 	m_ppStaticObjects[3]->SetChangeColor(pd3dCommandList, GetTickCount());

@@ -16,7 +16,7 @@ void CGameFramework::InitNetwork(HWND main_window)
 	ZeroMemory(&ServerAddr, sizeof(SOCKADDR_IN));
 	ServerAddr.sin_family = AF_INET;
 	ServerAddr.sin_port = htons(MY_SERVER_PORT);
-	ServerAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	ServerAddr.sin_addr.s_addr = inet_addr("192.168.120.20");
 	//ServerAddr.sin_addr.s_addr = inet_addr("10.30.1.27");
 
 	int Result = WSAConnect(g_mysocket, (sockaddr *)&ServerAddr, sizeof(ServerAddr), NULL, NULL, NULL, NULL);
@@ -75,7 +75,7 @@ void CGameFramework::ProcessPacket(char *ptr)
 			g_my_info.pos._41 = my_packet->m_xmf3Position.x;
 			g_my_info.pos._42 = my_packet->m_xmf3Position.y;
 			g_my_info.pos._43 = my_packet->m_xmf3Position.z;
-			g_my_info.quat = my_packet->m_xmf4Quaternion;
+			//g_my_info.quat = my_packet->m_xmf4Quaternion;
 		}
 
 		g_player_info[id].pos._41 = my_packet->m_xmf3Position.x;
@@ -85,12 +85,7 @@ void CGameFramework::ProcessPacket(char *ptr)
 
 		g_player_info[id].move_state = my_packet->keyInputState;
 		
-		if (m_iSceneState == INGAME)
-		{
-			m_pPlayer->SetWorldPosition(g_my_info.pos); 
-			m_pCamera->Rotate(0, 0, 0);
-			m_ppScenes[OBJECT]->SetSkyBoxPosition(m_pCamera->GetPosition());
-		}
+		
 
 		if (g_player_info[id].m_iCharacterType == SOLDIER)
 		{
@@ -179,16 +174,16 @@ void CGameFramework::ProcessPacket(char *ptr)
 		m_iSceneState = my_packet->scenestate;
 		if (m_iSceneState == INGAME)//게임시작 패킷일 때
 		{
-			m_FmodSound.StopSoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
-			m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_INGAME));
+			//m_FmodSound.StopSoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
+			//m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_INGAME));
 			m_FmodSound.Update();
 
 			printf("GameStart!\n");
 		}
 		else if (my_packet->scenestate == INGAMEROOM)
 		{
-			m_FmodSound.StopSoundBG(static_cast<int>(BACKSOUND::BACKGROUND_INGAME));
-			m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
+			//m_FmodSound.StopSoundBG(static_cast<int>(BACKSOUND::BACKGROUND_INGAME));
+			//m_FmodSound.PlaySoundBG(static_cast<int>(BACKSOUND::BACKGROUND_ROBBY));
 			m_FmodSound.Update();
 
 			g_my_info.m_scene = INGAMEROOM;
