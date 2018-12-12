@@ -20,6 +20,7 @@
 *.pch
 *.ilk
 
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
