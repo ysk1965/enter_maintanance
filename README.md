@@ -13,7 +13,6 @@
   - 3인 개발 게임으로 DirectX12 기본 프레임워크와 PhysX를 활용한 물리 및 충돌처리 부분, UI제작 및 게임 적용을 맡았습니다.
   - Tool & Language : DirectX12 + PhysX + IOCPServer + C++
   - [플레이 영상](https://blog.naver.com/enter_maintanance/221279701126)
-  
   - 만일 실행오류 시 [디렉터리 추가]
     - [프로젝트] -> [속성] -> C/C++ -> 일반 -> 추가포함디렉터리 -> 폴더 내 Include 추가
     - [프로젝트] -> [속성] -> 링커 -> 일반 -> 추가라이브러리디렉터리 -> 폴더 내 library 추가
