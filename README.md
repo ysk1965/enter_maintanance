@@ -3,7 +3,7 @@
 ## 1. [DirectX12 + PhysX]FancyPlanet
   - 중간발표 이후로 PhysX서버이전, PhysX를 이용한 캐릭터 스킬 구현, FMOD를 이용한 사운드이펙트 구현, 게임로직 구현을 맡았습니다.
   - Tool & Language : DirectX12 + PhysX + IOCPServer + FMOD + C++
-  - [플레이 영상](https://blog.naver.com/enter_maintanance/221279701126)
+  - [플레이 영상](https://blog.naver.com/enter_maintanance/221363153513)
   - 만일 실행오류 시 [디렉터리 추가]
     - [프로젝트] -> [속성] -> C/C++ -> 일반 -> 추가포함디렉터리 -> 폴더 내 Include 추가
     - [프로젝트] -> [속성] -> 링커 -> 일반 -> 추가라이브러리디렉터리 -> 폴더 내 library 추가
